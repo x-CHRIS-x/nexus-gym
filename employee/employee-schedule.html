@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Employee - Schedule</title>
+    <link rel="stylesheet" href="employee.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">NEXUS</div>
+        <ul class="nav-menu">
+            <li><a href="employee-dashboard.html"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li><a href="employee-members.html"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li class="active"><a href="employee-schedule.html"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
+            <li><a href="employee-fitness-plans.html"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
+        </ul>
+        <div class="logout-container">
+            <a href="../login.html" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Employee Schedule</h2>
+            <div class="dashboard-datetime" id="dashboard-datetime" style="font-size:1.1rem; color:#fff; font-weight:600; margin-right:24px;"></div>
+            <div class="user-profile">
+                <img src="../images/profile pictures/default-profile.svg" alt="User">
+                <span>Employee</span>
+            </div>
+        </div>
+
+        <script>
+        // Live date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString(undefined, options);
+            const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('dashboard-datetime').textContent = `${dateStr} | ${timeStr}`;
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        </script>
+
+        <!-- Schedule of Employee -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="employee-table-title">Duty Roster</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>In-Charge</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Aug 19, 2025</td>
+                            <td>Morning (6 AM - 2 PM)</td>
+                            <td>Jorem</td>
+                            <td>Watchman</td>
+                        </tr>
+                        <tr>
+                            <td>Aug 19, 2025</td>
+                            <td>Afternoon (2 PM - 10 PM)</td>
+                            <td>Lim </td>
+                            <td>Supervisor</td>
+                        </tr>
+                        <tr>
+                            <td>Aug 20, 2025</td>
+                            <td>Night (10 PM - 6 AM)</td>
+                            <td>Gian </td>
+                            <td>Watchman</td>
+                        </tr>
+                        <tr>
+                            <td>Aug 20, 2025</td>
+                            <td>Morning (6 AM - 2 PM)</td>
+                            <td>Chris </td>
+                            <td>Floor Manager</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="card">
+            <div class="employee-table-title">Notes</div>
+            <p style="margin-top: 12px;">
+                ✅ Employees are required to report at least 15 minutes before shift.<br>
+                ✅ In-charge must update attendance logs.<br>
+                ✅ For changes, contact the Admin.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

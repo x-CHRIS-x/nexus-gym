@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Member Dashboard</title>
+    <link rel="stylesheet" href="member.css">
+
+</head>
+<body>
+    <!-- Sidebar (always open) -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">NEXUS</div>
+        <ul class="nav-menu">
+            <li class="active"><a href="member-dashboard.html"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li><a href="member-members.html"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="member-classes.html"><img src="../images/icons/dashboard-classes-icon.svg" alt="Classes" class="nav-icon"> Classes</a></li>
+            <li><a href="member-my-plan.html"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="My Plan" class="nav-icon"> My Plan</a></li>
+            <li><a href="member-progress.html"><img src="../images/icons/dashboard-progress-icon.svg" alt="Progress" class="nav-icon"> Progress</a></li>
+            <li><a href="member-subscription.html"><img src="../images/icons/dashboard-payment-icon.svg" alt="Subscription" class="nav-icon"> Subscription</a></li>
+            <li><a href="member-profile.html"><img src="../images/icons/dashboard-profile-icon.svg" alt="Profile" class="nav-icon"> Profile</a></li>
+        </ul>
+        <div class="logout-container">
+            <a href="../login.html" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Member Dashboard</h2>
+            <div class="dashboard-datetime" id="dashboard-datetime-member" style="font-size:1.1rem; color:#fff; font-weight:600; margin-right:24px;"></div>
+            <div class="user-profile">
+                <img src="../images/profile pictures/default-profile.svg" alt="User">
+                <span>Member</span>
+            </div>
+    <script>
+    // Live date and time for member dashboard
+    function updateDateTimeMember() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = now.toLocaleDateString(undefined, options);
+        const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('dashboard-datetime-member').textContent = `${dateStr} | ${timeStr}`;
+    }
+    setInterval(updateDateTimeMember, 1000);
+    updateDateTimeMember();
+    </script>
+        </div>
+
+        <!-- Top summary cards row -->
+        <div class="dashboard-summary-row">
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-My_Plan-icon.svg" class="summary-icon" alt="Membership Status">
+                <div class="summary-number subscription-active">Active</div>
+                <div class="summary-label">Membership Status</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-classes-icon.svg" class="summary-icon" alt="Classes Attended">
+                <div class="summary-number">15</div>
+                <div class="summary-label">Classes Attended</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-progress-icon.svg" class="summary-icon" alt="Progress">
+                <div class="summary-number">72%</div>
+                <div class="summary-label">Progress</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon" alt="Subscription Status">
+                <div class="summary-number subscription-expiry-active">Expires Sep 30, 2025</div>
+                <div class="summary-label">Subscription Status</div>
+            </div>
+        </div>
+
+        <!-- Progress Chart section (placeholder) -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="employee-table-title">Progress Chart</div>
+            <div style="text-align:center; color:#aaa; padding: 32px 0;">[Progress chart coming soon]</div>
+        </div>
+
+        <!-- Upcoming Classes Table -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="employee-table-title">Upcoming Classes</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>Date/Time</th>
+                            <th>Trainer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Yoga</td>
+                            <td>Aug 18, 10:00 AM</td>
+                            <td>Coach Gian</td>
+                        </tr>
+                        <tr>
+                            <td>HIIT</td>
+                            <td>Aug 19, 08:00 AM</td>
+                            <td>Coach Maofyy</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Subscription Reminder section -->
+        <div class="card">
+            <div class="employee-table-title">Subscription Reminder</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Expiry date: <strong>Aug 31, 2025</strong></span>
+                <button class="action-btn edit-btn">Renew</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

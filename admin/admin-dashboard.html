@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Admin Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
+
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">NEXUS</div>
+        <ul class="nav-menu">
+            <li class="active"><a href="admin-dashboard.html"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li><a href="admin-employees.html"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
+            <li><a href="admin-members.html"><img src="../images/icons/dashboard-profile-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="admin-settings.html"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
+        </ul>
+        <div class="logout-container">
+            <a href="../login.html" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Admin Dashboard</h2>
+            <div class="dashboard-datetime" id="dashboard-datetime" style="font-size:1.1rem; color:#fff; font-weight:600; margin-right:24px;"></div>
+            <div class="user-profile">
+                <img src="../images/profile pictures/default-profile.svg" alt="User">
+                <span>Admin</span>
+            </div>
+    <script>
+    // Live date and time for dashboard
+    function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = now.toLocaleDateString(undefined, options);
+        const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('dashboard-datetime').textContent = `${dateStr} | ${timeStr}`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+    </script>
+        </div>
+
+        <!-- Top summary cards row -->
+        <div class="dashboard-summary-row">
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon" alt="Total Members" style="width:38px;height:38px;">
+                <div class="summary-number">250</div>
+                <div class="summary-label">Registered Members</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon" alt="Total Employees/Trainers" style="width:38px;height:38px;">
+                <div class="summary-number">15</div>
+                <div class="summary-label">Active Trainers</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon" alt="Active Subscriptions" style="width:38px;height:38px;">
+                <div class="summary-number">180</div>
+                <div class="summary-label">Currently Active Plans</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-progress-icon.svg" class="summary-icon" alt="Revenue Overview" style="width:38px;height:38px;">
+                <div class="summary-number" style="color:#eab308;">₱120,000</div>
+                <div class="summary-label">Revenue (This Month)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Today & Trainer Assignments Row -->
+        <div style="display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap;">
+            <div class="card" style="flex:1;min-width:220px;max-width:300px;">
+                <div class="employee-table-title">Attendance Today</div>
+                <div style="font-size:2rem;font-weight:bold;margin:16px 0 8px 0;">85</div>
+                <div style="color:#a0a0a0;">Check-ins</div>
+            </div>
+            <div class="card" style="flex:2;min-width:260px;">
+                <div class="employee-table-title">Trainer Assignments Today</div>
+                <ul style="list-style:none;padding:0;margin:0;">
+                    <li style="margin-bottom:8px;"><strong>marc jorem legazpi</strong> – Yoga, HIIT</li>
+                    <li style="margin-bottom:8px;"><strong>na1g</strong> – Pilates, Zumba</li>
+                    <li style="margin-bottom:8px;"><strong>Maofyy</strong> – Crossfit</li>
+                    <li style="margin-bottom:8px;"><strong>crcrzy</strong> – Boxing</li>
+                    <li style="margin-bottom:8px;"><strong>Kaishuie</strong> – Cardio</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Recent Payments Table -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="employee-table-title">Recent Payments</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>marc jorem legazpi</td>
+                            <td>₱2,000</td>
+                            <td>Aug 17, 2025</td>
+                            <td><span class="status active">Paid</span></td>
+                        </tr>
+                        <tr>
+                            <td>na1g</td>
+                            <td>₱1,500</td>
+                            <td>Aug 17, 2025</td>
+                            <td><span class="status active">Paid</span></td>
+                        </tr>
+                        <tr>
+                            <td>Maofyy</td>
+                            <td>₱2,500</td>
+                            <td>Aug 16, 2025</td>
+                            <td><span class="status inactive">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>crcrzy</td>
+                            <td>₱2,000</td>
+                            <td>Aug 16, 2025</td>
+                            <td><span class="status active">Paid</span></td>
+                        </tr>
+                        <tr>
+                            <td>Kaishuie</td>
+                            <td>₱2,200</td>
+                            <td>Aug 16, 2025</td>
+                            <td><span class="status active">Paid</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reports & Analytics Shortcut and Notifications Row -->
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <div class="card" style="flex:1;min-width:220px;max-width:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <div class="employee-table-title">Reports & Analytics</div>
+                <a href="#" class="btn" style="margin-top:16px;">View Detailed Reports</a>
+            </div>
+            <div class="card" style="flex:2;min-width:260px;">
+                <div class="employee-table-title">Notifications / Alerts</div>
+                <ul style="list-style:none;padding:0;margin:0;">
+                    <li style="margin-bottom:8px;">5 memberships expiring this week</li>
+                    <li style="margin-bottom:8px;">2 overdue payments</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

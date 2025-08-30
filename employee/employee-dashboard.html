@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Employee Dashboard</title>
+    <link rel="stylesheet" href="employee.css">
+
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">NEXUS</div>
+        <ul class="nav-menu">
+            <li class="active"><a href="employee-dashboard.html"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li><a href="employee-members.html"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="employee-schedule.html"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
+            <li><a href="employee-fitness-plans.html"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
+        </ul>
+        <div class="logout-container">
+            <a href="../login.html" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Employee Dashboard</h2>
+            <div class="dashboard-datetime" id="dashboard-datetime" style="font-size:1.1rem; color:#fff; font-weight:600; margin-right:24px;"></div>
+            <div class="user-profile">
+                <img src="../images/profile pictures/default-profile.svg" alt="User">
+                <span>Employee</span>
+            </div>
+    <script>
+    // Live date and time for dashboard
+    function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = now.toLocaleDateString(undefined, options);
+        const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('dashboard-datetime').textContent = `${dateStr} | ${timeStr}`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+    </script>
+        </div>
+
+        <!-- Summary Cards Row -->
+        <div class="dashboard-summary-row">
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-classes-icon.svg" alt="Classes Today" class="summary-icon">
+                <div class="summary-number">4</div>
+                <div class="summary-label">Classes Today</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-members-icon.svg" alt="Assigned Members" class="summary-icon">
+                <div class="summary-number">12</div>
+                <div class="summary-label">Assigned Members</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/clock-icon.svg" alt="Hours Logged" class="summary-icon">
+                <div class="summary-number">32</div>
+                <div class="summary-label">Hours Logged (This Week)</div>
+            </div>
+            <div class="dashboard-card">
+                <img src="../images/icons/dashboard-progress-icon.svg" alt="Sessions Completed" class="summary-icon">
+                <div class="summary-number">3</div>
+                <div class="summary-label">Sessions Completed</div>
+            </div>
+        </div>
+
+        <!-- Large Card with Employee Table -->
+        <!-- Upcoming Schedule Section -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="employee-table-title">Upcoming Schedule</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Class/Workout</th>
+                            <th>Assigned Members</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Aug 18</td>
+                            <td>10:00 AM</td>
+                            <td>Yoga</td>
+                            <td>John, Jane</td>
+                        </tr>
+                        <tr>
+                            <td>Aug 18</td>
+                            <td>1:00 PM</td>
+                            <td>HIIT</td>
+                            <td>Mike, Sarah</td>
+                        </tr>
+                        <tr>
+                            <td>Aug 19</td>
+                            <td>8:00 AM</td>
+                            <td>Pilates</td>
+                            <td>Anna, Chris</td>
+                        </tr>
+                        <tr>
+                            <td>Aug 19</td>
+                            <td>8:00 AM</td>
+                            <td>Pilates</td>
+                            <td>Anna, Chris</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Assigned Members Section -->
+        <div class="card">
+            <div class="employee-table-title">Assigned Members</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Member Name</th>
+                            <th>Active Plan</th>
+                            <th>Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>Gold</td>
+                            <td>Present</td>
+                        </tr>
+                        <tr>
+                            <td>Jane Smith</td>
+                            <td>Silver</td>
+                            <td>Absent</td>
+                        </tr>
+                        <tr>
+                            <td>Mike Johnson</td>
+                            <td>Gold</td>
+                            <td>Present</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,462 @@
+/* Sidebar toggle (checkbox hack) */
+.sidebar-toggle {
+    display: none;
+}
+.sidebar-hamburger {
+    display: block;
+}
+@media (min-width: 900px) {
+    .sidebar-hamburger {
+        display: none;
+    }
+}
+.sidebar {
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    transform: translateX(-100%);
+    z-index: 1002;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 250px;
+}
+.sidebar-toggle:checked ~ .sidebar-hamburger {
+    display: none;
+}
+.sidebar-toggle:checked ~ .sidebar {
+    transform: translateX(0);
+    display: flex;
+    flex-direction: column;
+}
+@media (min-width: 900px) {
+    .sidebar {
+        transform: translateX(0) !important;
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+    }
+    .sidebar-hamburger {
+        display: none !important;
+    }
+}
+/* Subscription status expiry color */
+.summary-number.subscription-expiry-active {
+    color: #27ae60;
+    font-weight: bold;
+}
+.summary-number.subscription-expiry-expired {
+    color: #e74c3c;
+    font-weight: bold;
+}
+/* Subscription status color for summary card */
+.summary-number.subscription-active {
+    color: #27ae60;
+    font-weight: bold;
+}
+.summary-number.subscription-inactive {
+    color: #e74c3c;
+    font-weight: bold;
+}
+.summary-label {
+    font-size: 1rem;
+    color: #a0a0a0;
+    letter-spacing: 0.5px;
+}
+.summary-number {
+    font-size: 2.1rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+/* Base style for all plans */
+.summary-plan {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+/* Clean summary card icon container for member dashboard */
+.summary-icon-container {
+    width: 48px;
+    height: 48px;
+    background: #f5f6fa;
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+/* Dashboard summary icon size fix for consistency */
+.summary-icon {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 10px;
+    display: block;
+}
+.dashboard-summary-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+.dashboard-card {
+    flex: 1;
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 24px 0 18px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(220, 38, 38, 0.12);
+    border: 1px solid #333333;
+    min-width: 0;
+}
+/* Sidebar nav-icon size fix for consistency */
+.nav-menu li .nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    filter: invert(1);
+}
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #0f0f0f;
+    color: #ffffff;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background: #1a1a1a;
+    color: white;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #333333;
+}
+
+.logo {
+    text-align: center;
+    padding: 20px 0;
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: 1px solid #333333;
+    margin-bottom: 30px;
+}
+
+.nav-menu {
+    list-style: none;
+    flex-grow: 1;
+}
+
+.nav-menu li {
+    padding: 15px 25px;
+    cursor: pointer;
+    transition: 0.3s;
+    border-bottom: 1px solid #333333;
+}
+
+.nav-menu li:hover, .nav-menu li.active {
+    background: #dc2626;
+}
+
+.nav-menu li .nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    filter: invert(1);
+}
+
+.nav-menu li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+}
+
+.logout-item {
+    margin-top: auto;
+    border-top: 1px solid #333333;
+    padding: 20px 0;
+}
+
+/* Logout button styling */
+.logout-container {
+    margin-top: auto;
+    padding: 20px 25px;
+    border-top: 1px solid #333333;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: #dc2626;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: 0.3s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.logout-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-2px);
+}
+
+.logout-btn .nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    filter: invert(1);
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 250px;
+    padding: 30px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background: #1a1a1a;
+    padding: 10px 15px;
+    border-radius: 30px;
+    width: 300px;
+    box-shadow: 0 2px 10px rgba(220, 38, 38, 0.2);
+    border: 1px solid #333333;
+}
+
+.search-bar input {
+    border: none;
+    outline: none;
+    width: 100%;
+    padding: 5px;
+    background: transparent;
+    color: #ffffff;
+}
+
+.search-bar input::placeholder {
+    color: #a0a0a0;
+}
+
+.search-bar .search-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    filter: invert(1);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Data Table */
+.card {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.2);
+    border: 1px solid #333333;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #333333;
+}
+
+th {
+    background: #333333;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+tr:hover {
+    background: #333333;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status.active {
+    background: #e3f7e8;
+    color: #27ae60;
+}
+
+.status.inactive {
+    background: #ffecec;
+    color: #e74c3c;
+}
+
+.action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn .action-icon {
+    width: 14px;
+    height: 14px;
+    /* Make SVG icons white by targeting fill */
+    filter: none;
+    fill: white;
+}
+
+/* Ensure action buttons are always in a single row */
+td:last-child {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+}
+
+.edit-btn {
+    background: #dc2626;
+    color: white;
+}
+
+.delete-btn {
+    background: #dc2626;
+    color: white;
+}
+
+/* Under Development Page Styles */
+.dev-container {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 150px);
+}
+
+.dev-card-small {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.2);
+    border: 1px solid #333333;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.dev-card-large {
+    background: #1a1a1a;
+    border-radius: 10px;
+    padding: 40px;
+    box-shadow: 0 5px 15px rgba(220, 38, 38, 0.2);
+    border: 1px solid #333333;
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.coming-soon-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #dc2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.coming-soon-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.coming-soon-text {
+    color: #a0a0a0;
+    line-height: 1.6;
+}
+
+.page-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.user-role {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .dev-container {
+        flex-direction: column;
+    }
+    
+    .dev-card-small,
+    .dev-card-large {
+        width: 100%;
+    }
+}

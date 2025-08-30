@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Admin Settings</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Override white box styling for settings page */
+        .settings-section {
+            background: transparent;
+            padding: 20px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1); /* subtle outline */
+            color: #fff;
+        }
+
+        .settings-section label {
+            font-weight: 600;
+            display: block;
+            margin-top: 12px;
+        }
+
+        .settings-section input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .settings-section input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .settings-section .btn {
+            margin-top: 16px;
+            background: #e11d48; /* red like logout button */
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .settings-section .btn:hover {
+            background: #be123c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">NEXUS</div>
+        <ul class="nav-menu">
+            <li><a href="admin-dashboard.html"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li><a href="admin-employees.html"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
+            <li><a href="admin-members.html"><img src="../images/icons/dashboard-profile-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li class="active"><a href="admin-settings.html"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
+        </ul>
+        <div class="logout-container">
+            <a href="../login.html" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Admin Settings</h2>
+            <div class="dashboard-datetime" id="dashboard-datetime" style="font-size:1.1rem; color:#fff; font-weight:600; margin-right:24px;"></div>
+            <div class="user-profile">
+                <img src="../images/profile pictures/default-profile.svg" alt="User">
+                <span>Admin</span>
+            </div>
+        </div>
+
+        <script>
+        // Live date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString(undefined, options);
+            const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('dashboard-datetime').textContent = `${dateStr} | ${timeStr}`;
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        </script>
+
+        <!-- Settings Page Content -->
+        <div class="settings-section">
+            <div class="employee-table-title">Account Settings</div>
+            <form>
+                <label>Admin Name</label>
+                <input type="text" value="Admin">
+
+                <label>Email</label>
+                <input type="email" value="admin@nexus.com">
+
+                <label>Password</label>
+                <input type="password" value="********">
+
+                <button type="submit" class="btn">Save Changes</button>
+            </form>
+        </div>
+
+        <div class="settings-section">
+            <div class="employee-table-title">System Preferences</div>
+            <label><input type="checkbox" checked> Enable notifications</label>
+            <label><input type="checkbox"> Dark mode</label>
+            <label><input type="checkbox" checked> Auto backup</label>
+        </div>
+    </div>
+</body>
+</html>
