@@ -26,7 +26,7 @@
     <div class="main-content">
         <div class="header">
             <h2>Admin Dashboard</h2>
-            <div class="dashboard-datetime" id="dashboard-datetime" style="font-size:1.1rem; color:#fff; font-weight:600; margin-right:24px;"></div>
+        <div class="dashboard-datetime dashboard-datetime-style" id="dashboard-datetime"></div>
             <div class="user-profile">
                 <img src="../images/profile pictures/default-profile.svg" alt="User">
                 <span>Admin</span>
@@ -48,23 +48,23 @@
         <!-- Top summary cards row -->
         <div class="dashboard-summary-row">
             <div class="dashboard-card">
-                <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon" alt="Total Members" style="width:38px;height:38px;">
+                <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon summary-icon-38" alt="Total Members">
                 <div class="summary-number">250</div>
                 <div class="summary-label">Registered Members</div>
             </div>
             <div class="dashboard-card">
-                <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon" alt="Total Employees/Trainers" style="width:38px;height:38px;">
+                <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon summary-icon-38" alt="Total Employees/Trainers">
                 <div class="summary-number">15</div>
                 <div class="summary-label">Active Trainers</div>
             </div>
             <div class="dashboard-card">
-                <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon" alt="Active Subscriptions" style="width:38px;height:38px;">
+                <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon summary-icon-38" alt="Active Subscriptions">
                 <div class="summary-number">180</div>
                 <div class="summary-label">Currently Active Plans</div>
             </div>
             <div class="dashboard-card">
-                <img src="../images/icons/dashboard-progress-icon.svg" class="summary-icon" alt="Revenue Overview" style="width:38px;height:38px;">
-                <div class="summary-number" style="color:#eab308;">₱120,000</div>
+                <img src="../images/icons/dashboard-progress-icon.svg" class="summary-icon summary-icon-38" alt="Revenue Overview">
+                <div class="summary-number summary-number-gold">₱120,000</div>
                 <div class="summary-label">Revenue (This Month)
                     </span>
                 </div>
@@ -72,26 +72,26 @@
         </div>
 
         <!-- Attendance Today & Trainer Assignments Row -->
-        <div style="display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap;">
-            <div class="card" style="flex:1;min-width:220px;max-width:300px;">
+    <div class="flex-row flex-gap-24 flex-mb-24 flex-wrap">
+            <div class="card card-flex-1 card-min-width-220 card-max-width-300">
                 <div class="employee-table-title">Attendance Today</div>
-                <div style="font-size:2rem;font-weight:bold;margin:16px 0 8px 0;">85</div>
-                <div style="color:#a0a0a0;">Check-ins</div>
+                <div class="attendance-today-number">85</div>
+                <div class="attendance-today-label">Check-ins</div>
             </div>
-            <div class="card" style="flex:2;min-width:260px;">
+            <div class="card card-flex-2 card-min-width-260">
                 <div class="employee-table-title">Trainer Assignments Today</div>
-                <ul style="list-style:none;padding:0;margin:0;">
-                    <li style="margin-bottom:8px;"><strong>marc jorem legazpi</strong> – Yoga, HIIT</li>
-                    <li style="margin-bottom:8px;"><strong>na1g</strong> – Pilates, Zumba</li>
-                    <li style="margin-bottom:8px;"><strong>Maofyy</strong> – Crossfit</li>
-                    <li style="margin-bottom:8px;"><strong>crcrzy</strong> – Boxing</li>
-                    <li style="margin-bottom:8px;"><strong>Kaishuie</strong> – Cardio</li>
+                <ul class="list-no-style list-no-padding list-no-margin">
+                    <li class="list-margin-bottom-8"><strong>marc jorem legazpi</strong> – Yoga, HIIT</li>
+                    <li class="list-margin-bottom-8"><strong>na1g</strong> – Pilates, Zumba</li>
+                    <li class="list-margin-bottom-8"><strong>Maofyy</strong> – Crossfit</li>
+                    <li class="list-margin-bottom-8"><strong>crcrzy</strong> – Boxing</li>
+                    <li class="list-margin-bottom-8"><strong>Kaishuie</strong> – Cardio</li>
                 </ul>
             </div>
         </div>
 
         <!-- Recent Payments Table -->
-        <div class="card" style="margin-bottom:24px;">
+    <div class="card card-margin-bottom">
             <div class="employee-table-title">Recent Payments</div>
             <div class="table-container">
                 <table>
@@ -140,16 +140,16 @@
         </div>
 
         <!-- Reports & Analytics Shortcut and Notifications Row -->
-        <div style="display:flex;gap:24px;flex-wrap:wrap;">
-            <div class="card" style="flex:1;min-width:220px;max-width:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div class="flex-row flex-gap-24 flex-wrap">
+            <div class="card card-flex-1 card-min-width-220 card-max-width-320 card-center-flex">
                 <div class="employee-table-title">Reports & Analytics</div>
-                <a href="#" class="btn" style="margin-top:16px;">View Detailed Reports</a>
+                <a href="#" class="btn btn-margin-top-16">View Detailed Reports</a>
             </div>
-            <div class="card" style="flex:2;min-width:260px;">
+            <div class="card card-flex-2 card-min-width-260">
                 <div class="employee-table-title">Notifications / Alerts</div>
-                <ul style="list-style:none;padding:0;margin:0;">
-                    <li style="margin-bottom:8px;">5 memberships expiring this week</li>
-                    <li style="margin-bottom:8px;">2 overdue payments</li>
+                <ul class="list-no-style list-no-padding list-no-margin">
+                    <li class="list-margin-bottom-8">5 memberships expiring this week</li>
+                    <li class="list-margin-bottom-8">2 overdue payments</li>
                 </ul>
             </div>
         </div>

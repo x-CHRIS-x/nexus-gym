@@ -1,3 +1,144 @@
+/* ---- Flex Utility Classes (for admin-dashboard.html) ---- */
+.flex-row {
+    display: flex;
+}
+.flex-gap-24 {
+    gap: 24px;
+}
+.flex-mb-24 {
+    margin-bottom: 24px;
+}
+.flex-wrap {
+    flex-wrap: wrap;
+}
+/* =============================
+   ADMIN DASHBOARD PAGE STYLES
+   (admin-dashboard.html)
+   ============================= */
+
+/* ---- Dashboard DateTime ---- */
+.dashboard-datetime-style {
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 600;
+    margin-right: 24px;
+}
+
+/* ---- Card Spacing ---- */
+.card-margin-bottom {
+    margin-bottom: 24px;
+}
+
+/* ---- Summary Icon Sizing ---- */
+.summary-icon-38 {
+    width: 38px;
+    height: 38px;
+}
+
+/* ---- Gold Revenue Number ---- */
+.summary-number-gold {
+    color: #eab308;
+}
+
+/* ---- Flex Utility Classes ---- */
+.card-flex-1 {
+    flex: 1;
+}
+.card-flex-2 {
+    flex: 2;
+}
+.card-min-width-220 {
+    min-width: 220px;
+}
+.card-min-width-260 {
+    min-width: 260px;
+}
+.card-max-width-300 {
+    max-width: 300px;
+}
+.card-max-width-320 {
+    max-width: 320px;
+}
+.card-center-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ---- Attendance Today ---- */
+.attendance-today-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 16px 0 8px 0;
+}
+.attendance-today-label {
+    color: #a0a0a0;
+}
+
+/* ---- List Utility Classes ---- */
+.list-no-style {
+    list-style: none;
+}
+.list-no-padding {
+    padding: 0;
+}
+.list-no-margin {
+    margin: 0;
+}
+.list-margin-bottom-8 {
+    margin-bottom: 8px;
+}
+
+/* ---- Button Utility ---- */
+.btn-margin-top-16 {
+    margin-top: 16px;
+}
+
+/* =============================
+   ADMIN SETTINGS PAGE STYLES
+   (admin-settings.html)
+   ============================= */
+
+.settings-section {
+    background: transparent;
+    padding: 20px;
+    margin-bottom: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+}
+.settings-section label {
+    font-weight: 600;
+    display: block;
+    margin-top: 12px;
+}
+.settings-section input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+.settings-section input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+.settings-section .btn {
+    margin-top: 16px;
+    background: #e11d48;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.settings-section .btn:hover {
+    background: #be123c;
+}
 /* --- Admin Members Page Modern Flat Design --- */
 
 body, .main-content {
