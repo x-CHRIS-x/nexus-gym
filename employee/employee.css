@@ -1,3 +1,52 @@
+/* =============================
+   EMPLOYEE DASHBOARD PAGE STYLES
+   (employee-dashboard.html)
+   ============================= */
+
+/* ---- Dashboard DateTime ---- */
+.dashboard-datetime-style {
+    font-size: 1.1rem;
+    color: #fff;
+    font-weight: 600;
+    margin-right: 24px;
+}
+
+/* ---- Card Spacing ---- */
+.card-margin-bottom {
+    margin-bottom: 24px;
+}
+
+/* =============================
+   EMPLOYEE SCHEDULE PAGE STYLES
+   (employee-schedule.html)
+   ============================= */
+
+/* ---- Notes Section ---- */
+.p-margin-top {
+    margin-top: 12px;
+}
+
+/* =============================
+   EMPLOYEE FITNESS PLANS PAGE STYLES
+   (employee-fitness-plans.html)
+   ============================= */
+
+/* ---- Fitness Program Cards ---- */
+.card-row-flex {
+    display: flex;
+}
+.card-row-gap {
+    gap: 20px;
+}
+.card-row-margin-bottom {
+    margin-bottom: 24px;
+}
+.card-flex-1 {
+    flex: 1;
+}
+.ul-margin-top {
+    margin-top: 12px;
+}
 /* --- Employee Members Page Modern Flat Design (copied from admin.css) --- */
 .members-container {
     display: flex;
