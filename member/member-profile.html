@@ -27,25 +27,59 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h2>Member Dashboard</h2>
+            <h2>Member Profile</h2>
             <div class="user-profile">
-                <img src="../images/profile pictures/default-profile.svg" alt="User">
+                <img src="../images/profile pictures/default-profile.svg" alt="User" id="profile-img" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
                 <span>Member</span>
             </div>
         </div>
 
-        <div class="dev-container">
-            <div class="dev-card-small">
-                <div class="page-title">User Profile</div>
-                <p>This page is under development</p>
-                <div class="user-role">User role: Member</div>
-            </div>
-            
-            <div class="dev-card-large">
-                <div class="coming-soon-circle">+</div>
-                <div class="coming-soon-title">Coming Soon</div>
-                <div class="coming-soon-text">This feature is currently in development. Check back soon for updates!</div>
-            </div>
+        <div class="profile-container">
+            <form class="profile-form-grid">
+                <div class="profile-picture-section profile-picture-top">
+                    <img src="../images/profile pictures/default-profile.svg" alt="Profile Picture" id="profile-picture-preview">
+                    <input type="file" id="profile-picture" name="profile-picture" accept="image/*">
+                </div>
+                <div class="profile-form-col left-col">
+                    <div class="profile-fields uneditable-fields">
+                        <label>Full Name</label>
+                        <input type="text" value="John Doe" readonly>
+
+                        <label>Email Address</label>
+                        <input type="email" value="johndoe@email.com" readonly>
+
+                        <label>Date of Birth</label>
+                        <input type="date" value="1990-01-01" readonly>
+
+                        <label>Gender</label>
+                        <input type="text" value="Male" readonly>
+
+                        <label>Membership Type</label>
+                        <input type="text" value="Premium" readonly>
+
+                        <label>Join Date</label>
+                        <input type="date" value="2023-01-01" readonly>
+                    </div>
+                </div>
+                <div class="profile-form-col right-col">
+                    <div class="profile-fields editable-fields">
+                        <label>Phone Number</label>
+                        <input type="tel" name="phone" value="" placeholder="Enter phone number">
+
+                        <label>Address</label>
+                        <input type="text" name="address" value="" placeholder="Enter address">
+
+                        <label>Emergency Contact</label>
+                        <input type="text" name="emergency" value="" placeholder="Enter emergency contact">
+
+                        <label>Change Password</label>
+                        <input type="password" name="current-password" placeholder="Current password">
+                        <input type="password" name="new-password" placeholder="New password">
+                        <input type="password" name="confirm-password" placeholder="Confirm new password">
+                    </div>
+                    <button type="submit" class="save-btn">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </body>
