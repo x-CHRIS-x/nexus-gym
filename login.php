@@ -62,7 +62,7 @@
             </div>
           </div>
 
-          <form action="member/member-dashboard.html" id="member-form">
+          <form action="member/member-dashboard.php" id="member-form">
             <div class="form-group">
               <label for="username">Username</label>
               <input id="username" name="username" type="text" class="input" placeholder="Enter your username" required/>
@@ -74,7 +74,7 @@
             <button type="submit" class="btn w-full">Sign In</button>
           </form>
           
-          <form action="employee/employee-dashboard.html" id="employee-form">
+          <form action="employee/employee-dashboard.php" id="employee-form">
             <div class="form-group">
               <label for="username-employee">Username</label>
               <input id="username-employee" name="username" type="text" class="input" placeholder="Enter your username" required/>
@@ -86,7 +86,7 @@
             <button type="submit" class="btn w-full">Sign In</button>
           </form>
           
-          <form action="admin/admin-dashboard.html" id="admin-form">
+          <form action="admin/admin-dashboard.php" id="admin-form">
             <div class="form-group">
               <label for="username-admin">Username</label>
               <input id="username-admin" name="username" type="text" class="input" placeholder="Enter your username" required/>

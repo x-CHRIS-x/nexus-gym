@@ -1,3 +1,9 @@
+<?php
+include '../db.php';
+
+$sql = "SELECT * FROM members";
+$result = $conn->query($sql);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,13 +18,13 @@
     <div class="sidebar">
         <div class="logo">NEXUS</div>
         <ul class="nav-menu">
-            <li class="active"><a href="admin-dashboard.html"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
-            <li><a href="admin-employees.html"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
-            <li><a href="admin-members.html"><img src="../images/icons/dashboard-profile-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
-            <li><a href="admin-settings.html"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
+            <li class="active"><a href="admin-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li><a href="admin-employees.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
+            <li><a href="admin-members.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
-            <a href="../login.html" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
 
@@ -49,17 +55,36 @@
         <div class="dashboard-summary-row">
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon summary-icon-38" alt="Total Members">
-                <div class="summary-number">250</div>
+                <div class="summary-number">
+                    <?php
+                    $sql = "SELECT COUNT(*) FROM members";
+                    $result = $conn->query($sql);
+                    $row = $result->fetch_assoc();
+                    echo $row["COUNT(*)"];
+                    ?>
+                </div>
                 <div class="summary-label">Registered Members</div>
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-members-icon.svg" class="summary-icon summary-icon-38" alt="Total Employees/Trainers">
-                <div class="summary-number">15</div>
+                <div class="summary-number"><?php
+                    $sql = "SELECT COUNT(*) FROM employees where position = 'Trainer'";
+                    $result = $conn->query($sql);
+                    $row = $result->fetch_assoc();
+                    echo $row["COUNT(*)"];
+                    ?></div>
                 <div class="summary-label">Active Trainers</div>
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon summary-icon-38" alt="Active Subscriptions">
-                <div class="summary-number">180</div>
+                <div class="summary-number">
+                <?php
+                    $sql = "SELECT COUNT(*) FROM members where status = 'Active'";
+                    $result = $conn->query($sql);
+                    $row = $result->fetch_assoc();
+                    echo $row["COUNT(*)"];
+                    ?>
+                </div>
                 <div class="summary-label">Currently Active Plans</div>
             </div>
             <div class="dashboard-card">
@@ -156,3 +181,6 @@
     </div>
 </body>
 </html>
+<?php
+$conn->close();
+?>
