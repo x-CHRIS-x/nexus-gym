@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($role === "admin") {
         // Admin login from DB
-        $sql = "SELECT * FROM admins WHERE username='$username' LIMIT 1";
+        $sql = "SELECT * FROM admins WHERE email='$username' LIMIT 1";
     } elseif ($role === "member") {
         $sql = "SELECT * FROM members WHERE email='$username' LIMIT 1";
     } elseif ($role === "employee") {
