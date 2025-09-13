@@ -38,7 +38,7 @@ $result = $conn->query($sql);
             <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
-
+    
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
@@ -57,6 +57,11 @@ $result = $conn->query($sql);
                         <label for="empFullName">Full Name</label>
                         <input type="text" id="empFullName" name="empFullName" required>
                     </div>
+                    <?php
+                    if (isset($_GET['error'])) {
+                        echo '<div style="color: red; margin-bottom: 10px;">' . htmlspecialchars($_GET['error']) . '</div>';
+                    }
+                    ?>
                     <div class="form-group">
                         <label for="empEmail">Email</label>
                         <input type="email" id="empEmail" name="empEmail" required>

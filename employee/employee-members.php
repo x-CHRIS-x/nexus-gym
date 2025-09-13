@@ -58,6 +58,11 @@ $result = $conn->query($sql);
                         <label for="fullName">Full Name</label>
                         <input type="text" id="fullName" name="fullName" required>
                     </div>
+                    <?php
+                    if (isset($_GET['error'])) {
+                        echo '<div style="color: red; margin-bottom: 10px;">' . htmlspecialchars($_GET['error']) . '</div>';
+                    }
+                    ?>
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required>
