@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php'; // connection file
+include 'db.php'; // your database connection
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role     = $_POST['role']; // member, employee, admin
@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($role === "member") {
             $sql = "SELECT * FROM members WHERE email='$username' LIMIT 1";
         } elseif ($role === "employee") {
-            $sql = "SELECT * FROM employee WHERE email='$username' LIMIT 1";
+            $sql = "SELECT * FROM employees WHERE email='$username' LIMIT 1"; // fixed table name
         } else {
             die("Invalid role");
         }
@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result && $result->num_rows === 1) {
             $row = $result->fetch_assoc();
 
-            // Check password
+            // Check hashed password
             if (password_verify($password, $row['password'])) {
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['role']    = $role;
