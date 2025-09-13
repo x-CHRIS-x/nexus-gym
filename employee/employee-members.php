@@ -67,7 +67,7 @@ $result = $conn->query($sql);
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required>
                     </div>
-                    <!-- 🔹 Password field right after Email -->
+                    <!-- Password field right after Email -->
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" required>
