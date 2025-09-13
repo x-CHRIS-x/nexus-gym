@@ -7,13 +7,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['empEmail'];
     $password = password_hash($_POST['empPassword'], PASSWORD_DEFAULT); // hash password
     $phone = $_POST['empPhone'];
-    $role = $_POST['empRole'];
     $position = $_POST['empPosition'];
     $date_hired = $_POST['empDateHired'];
     $status = $_POST['empStatus'];
     
     // Basic validation
-    if (empty($full_name) || empty($email) || empty($password) || empty($phone) || empty($role) || empty($position) || empty($date_hired) || empty($status)) {
+    if (empty($full_name) || empty($email) || empty($password) || empty($phone) || empty($position) || empty($date_hired) || empty($status)) {
         $error = "All fields are required!";
     } else {
         // Check if email already exists
@@ -24,9 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Email already exists!";
         } else {
             // Insert new employee
-            $sql = "INSERT INTO employees (full_name, email, password, phone, role, position, date_hired, status) 
-                    VALUES ('$full_name', '$email', '$password', '$phone', '$role', '$position', '$date_hired', '$status')";
-            
+            $sql = "INSERT INTO employees (full_name, email, password, phone, position, date_hired, status) 
+                    VALUES ('$full_name', '$email', '$password', '$phone', '$position', '$date_hired', '$status')";
             if ($conn->query($sql) === TRUE) {
                 $success = "Employee added successfully!";
             } else {

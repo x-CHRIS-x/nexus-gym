@@ -70,13 +70,6 @@ $result = $conn->query($sql);
                         <input type="text" id="empPhone" name="empPhone" required>
                     </div>
                     <div class="form-group">
-                        <label for="empRole">Role</label>
-                        <select id="empRole" name="empRole" required>
-                            <option value="Admin">Admin</option>
-                            <option value="Employee">Employee</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label for="empPosition">Position</label>
                         <input type="text" id="empPosition" name="empPosition" placeholder="e.g., Trainer, Front Desk, Cleaner" required>
                     </div>
@@ -104,9 +97,7 @@ $result = $conn->query($sql);
                 <div class="table-controls">
                     <input type="text" class="search-bar" placeholder="Search employees...">
                     <select class="filter-dropdown">
-                        <option value="">All Roles/Status</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Employee">Employee</option>
+                        <option value="">All Status</option>
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
                     </select>
@@ -119,7 +110,6 @@ $result = $conn->query($sql);
                                 <th>Full Name</th>
                                 <th>Email</th>
                                 <th>Phone Number</th>
-                                <th>Role</th>
                                 <th>Position</th>
                                 <th>Date Hired</th>
                                 <th>Status</th>
@@ -136,7 +126,6 @@ $result = $conn->query($sql);
                                     <td>".$row["full_name"]."</td>
                                     <td>".$row["email"]."</td>
                                     <td>".$row["phone"]."</td>
-                                    <td>".$row["role"]."</td>
                                     <td>".$row["position"]."</td>
                                     <td>".$row["date_hired"]."</td>
                                     <td><span class='".$statusClass."'>".$row["status"]."</span></td>
