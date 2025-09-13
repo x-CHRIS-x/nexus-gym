@@ -15,6 +15,14 @@ $total_pages = ceil($total_rows / $rows_per_page);
 // Get employees with pagination
 $sql = "SELECT * FROM employees LIMIT $rows_per_page OFFSET $offset";
 $result = $conn->query($sql);
+
+// Inline edit logic
+$edit_id = isset($_GET['edit_id']) ? intval($_GET['edit_id']) : null;
+$edit_row = null;
+if ($edit_id) {
+    $edit_result = $conn->query("SELECT * FROM employees WHERE id=$edit_id LIMIT 1");
+    $edit_row = $edit_result ? $edit_result->fetch_assoc() : null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,11 +59,14 @@ $result = $conn->query($sql);
         <div class="members-container">
             <!-- Left Card: Add/Edit Employee Form -->
             <div class="member-form-card">
-                <div class="card-header">Add New Employee</div>
-                <form method="POST" action="add-employee.php" class="member-form" autocomplete="off">
+                <div class="card-header"><?php echo $edit_id ? 'Edit Employee' : 'Add New Employee'; ?></div>
+                <form method="POST" action="<?php echo $edit_id ? 'edit-employee.php' : 'add-employee.php'; ?>" class="member-form" autocomplete="off">
+                    <?php if ($edit_id): ?>
+                        <input type="hidden" name="id" value="<?php echo $edit_id; ?>">
+                    <?php endif; ?>
                     <div class="form-group">
                         <label for="empFullName">Full Name</label>
-                        <input type="text" id="empFullName" name="empFullName" required>
+                        <input type="text" id="empFullName" name="empFullName" value="<?php echo $edit_row ? htmlspecialchars($edit_row['full_name']) : ''; ?>" required>
                     </div>
                     <?php
                     if (isset($_GET['error'])) {
@@ -64,33 +75,33 @@ $result = $conn->query($sql);
                     ?>
                     <div class="form-group">
                         <label for="empEmail">Email</label>
-                        <input type="email" id="empEmail" name="empEmail" required>
+                        <input type="email" id="empEmail" name="empEmail" value="<?php echo $edit_row ? htmlspecialchars($edit_row['email']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="empPassword">Password</label>
-                        <input type="password" id="empPassword" name="empPassword" required>
+                        <input type="password" id="empPassword" name="empPassword" <?php echo $edit_id ? '' : 'required'; ?>>
                     </div>
                     <div class="form-group">
                         <label for="empPhone">Phone Number</label>
-                        <input type="text" id="empPhone" name="empPhone" required>
+                        <input type="text" id="empPhone" name="empPhone" value="<?php echo $edit_row ? htmlspecialchars($edit_row['phone']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="empPosition">Position</label>
-                        <input type="text" id="empPosition" name="empPosition" placeholder="e.g., Trainer, Front Desk, Cleaner" required>
+                        <input type="text" id="empPosition" name="empPosition" value="<?php echo $edit_row ? htmlspecialchars($edit_row['position']) : ''; ?>" placeholder="e.g., Trainer, Front Desk, Cleaner" required>
                     </div>
                     <div class="form-group">
                         <label for="empDateHired">Date Hired</label>
-                        <input type="date" id="empDateHired" name="empDateHired" required>
+                        <input type="date" id="empDateHired" name="empDateHired" value="<?php echo $edit_row ? htmlspecialchars($edit_row['date_hired']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="empStatus">Status</label>
                         <select id="empStatus" name="empStatus" required>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
+                            <option value="Active" <?php echo ($edit_row && $edit_row['status'] == 'Active') ? 'selected' : ''; ?>>Active</option>
+                            <option value="Inactive" <?php echo ($edit_row && $edit_row['status'] == 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
                         </select>
                     </div>
                     <div class="form-buttons">
-                        <button type="submit" class="btn btn-save">Save Employee</button>
+                        <button type="submit" class="btn btn-save"><?php echo $edit_id ? 'Update Employee' : 'Save Employee'; ?></button>
                         <button type="button" class="btn btn-clear">Clear Form</button>
                     </div>
                 </form>
@@ -110,10 +121,10 @@ $result = $conn->query($sql);
                 <div class="table-responsive">
                     <table class="members-table">
                         <thead>
-                            <tr>
-                                <th>Employee ID</th>
-                                <th>Full Name</th>
-                                <th>Email</th>
+                                    <td>
+                                        <a href='admin-employees.php?edit_id=<?php echo $row["id"]; ?>' class='btn-action btn-edit' title='Edit'><img src='../images/icons/edit-icon.svg' alt='Edit'></a>
+                                        <a href='delete_employee.php?id=<?php echo $row["id"]; ?>' class='btn-action btn-delete' title='Delete' onclick='return confirm("Are you sure you want to delete this employee?")'><img src='../images/icons/delete-icon.svg' alt='Delete'></a>
+                                    </td>
                                 <th>Phone Number</th>
                                 <th>Position</th>
                                 <th>Date Hired</th>
