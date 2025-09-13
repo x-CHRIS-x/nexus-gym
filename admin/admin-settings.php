@@ -7,6 +7,28 @@
     <link rel="stylesheet" href="admin.css">
 
 </head>
+<?php
+session_start();
+include '../db.php';
+
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../login.php");
+    exit();
+}
+
+$admin_id = $_SESSION['user_id'];
+
+// Show message if set
+$msg = "";
+if (isset($_SESSION['msg'])) {
+    $msg = $_SESSION['msg'];
+    unset($_SESSION['msg']);
+}
+
+// Fetch current admin info
+$result = $conn->query("SELECT * FROM admins WHERE id=$admin_id LIMIT 1");
+$row = $result ? $result->fetch_assoc() : ['name' => '', 'email' => ''];
+?>
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -49,17 +71,18 @@
         <!-- Settings Page Content -->
         <div class="settings-section">
             <div class="employee-table-title">Account Settings</div>
-            <form>
+            <?php if ($msg) echo "<p style='color:green;'>$msg</p>"; ?>
+            <form method="post" action="admin-update.php">
                 <label>Admin Name</label>
-                <input type="text" value="Admin">
+                <input type="text" name="name" value="<?php echo isset($row['name']) ? htmlspecialchars($row['name']) : ''; ?>" required>
 
                 <label>Email</label>
-                <input type="email" value="admin@nexus.com">
+                <input type="email" name="email" value="<?php echo ($row['email']); ?>" required>
 
                 <label>Password</label>
-                <input type="password" value="********">
+                <input type="password" name="password" placeholder="Leave blank to keep current">
 
-                <button type="submit" class="btn">Save Changes</button>
+                <button type="submit" class="btn">Save Changes</button> 
             </form>
         </div>
 
