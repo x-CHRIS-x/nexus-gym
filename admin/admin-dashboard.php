@@ -76,7 +76,7 @@ $result = $conn->query($sql);
                 <div class="summary-label">Active Trainers</div>
             </div>
             <div class="dashboard-card">
-                <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon summary-icon-38" alt="Active Subscriptions">
+                <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon summary-icon-38" alt="Active Members">
                 <div class="summary-number">
                 <?php
                     $sql = "SELECT COUNT(*) FROM members where status = 'Active'";
@@ -85,7 +85,7 @@ $result = $conn->query($sql);
                     echo $row["COUNT(*)"];
                     ?>
                 </div>
-                <div class="summary-label">Currently Active Plans</div>
+                <div class="summary-label">Currently Active Members</div>
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-progress-icon.svg" class="summary-icon summary-icon-38" alt="Revenue Overview">
