@@ -1,47 +1,27 @@
 <?php
-include '../db.php';
+include '../db.php'; // connects to nexus-gym
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get form data
-    $full_name = $_POST['fullName'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
-    $membership_type = $_POST['membershipType'];
-    $join_date = $_POST['startDate'];
-    $status = $_POST['status'];
+    $fullName       = $conn->real_escape_string($_POST['fullName']);
+    $email          = $conn->real_escape_string($_POST['email']);
+    $phone          = $conn->real_escape_string($_POST['phone']);
+    $membershipType = $conn->real_escape_string($_POST['membershipType']);
+    $status         = $conn->real_escape_string($_POST['status']);
+    $joinDate       = $conn->real_escape_string($_POST['joinDate']); // date input from form
     
-    // Basic validation
-    if (empty($full_name) || empty($email) || empty($phone) || empty($membership_type) || empty($join_date) || empty($status)) {
-        $error = "All fields are required!";
+    // Hash password before saving
+    $password       = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    $sql = "INSERT INTO members (full_name, email, password, phone, membership_type, status, join_date)
+            VALUES ('$fullName', '$email', '$password', '$phone', '$membershipType', '$status', '$joinDate')";
+
+    if ($conn->query($sql) === TRUE) {
+        header("Location: employee-members.php");
+        exit();
     } else {
-        // Check if email already exists
-        $check_email = "SELECT id FROM members WHERE email = '$email'";
-        $result = $conn->query($check_email);
-        
-        if ($result->num_rows > 0) {
-            $error = "Email already exists!";
-        } else {
-            // Insert new member
-            $sql = "INSERT INTO members (full_name, email, phone, membership_type, join_date, status) 
-                    VALUES ('$full_name', '$email', '$phone', '$membership_type', '$join_date', '$status')";
-            
-            if ($conn->query($sql) === TRUE) {
-                $success = "Member added successfully!";
-            } else {
-                $error = "Error: " . $conn->error;
-            }
-        }
+        echo "Error: " . $conn->error;
     }
 }
 
-// Redirect back to employee-members.php with message
-$redirect_url = "employee-members.php";
-if (isset($error)) {
-    $redirect_url .= "?error=" . urlencode($error);
-} elseif (isset($success)) {
-    $redirect_url .= "?success=" . urlencode($success);
-}
-
-header("Location: $redirect_url");
-exit();
+$conn->close();
 ?>

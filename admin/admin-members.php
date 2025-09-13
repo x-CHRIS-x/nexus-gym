@@ -23,7 +23,6 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | Admin - Members</title>
     <link rel="stylesheet" href="admin.css">
-
 </head>
 <body>
     <!-- Sidebar -->
@@ -54,7 +53,7 @@ $result = $conn->query($sql);
             <!-- Left Card: Add/Edit Member Form -->
             <div class="member-form-card">
                 <div class="card-header">Add New Member</div>
-                <form method ='POST' action = 'add-member.php' class="member-form" autocomplete="off">
+                <form method='POST' action='add-member.php' class="member-form" autocomplete="off">
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
                         <input type="text" id="fullName" name="fullName" required>
@@ -62,6 +61,10 @@ $result = $conn->query($sql);
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="text" id="password" name="password" placeholder="e.g., member123" required>
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
@@ -91,22 +94,22 @@ $result = $conn->query($sql);
                     </div>
                 </form>
             </div>
+
             <!-- Right Card: Members List Table -->
             <div class="member-table-card">
                 <div class="card-header">Members List</div>
                 <div class="table-controls">
                     <input type="text" class="search-bar" placeholder="Search members...">
-                        <select class="filter-dropdown">
-                            <option value="">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
+                    <select class="filter-dropdown">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
                 </div>
                 <div class="table-responsive">
                     <table class="members-table">
                         <thead>
                             <tr>
-                                <th>Member ID</th>
                                 <th>Full Name</th>
                                 <th>Email</th>
                                 <th>Phone Number</th>
@@ -121,18 +124,17 @@ $result = $conn->query($sql);
                                 while($row = $result->fetch_assoc()) {
                                     $statusClass = ($row["status"] == "Active") ? "status-active" : "status-inactive";
                                     echo "<tr>
-                                    <td>".$row["id"]."</td>
                                     <td>".$row["full_name"]."</td>
                                     <td>".$row["email"]."</td>
                                     <td>".$row["phone"]."</td>
                                     <td>".$row["membership_type"]."</td>
                                     <td><span class='".$statusClass."'>".$row["status"]."</span></td>
                                     <td>
-                                        <button class='btn-action btn-edit' title='Edit'><img src='../images/icons/edit-icon.svg' alt='Edit'></button>
+                                        <a href='edit-member.php?id=".$row["id"]."' class='btn-action btn-edit' title='Edit'><img src='../images/icons/edit-icon.svg' alt='Edit'></a>
                                         <a href='delete_member.php?id=".$row["id"]."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'><img src='../images/icons/delete-icon.svg' alt='Delete'></a>
                                     </td>
                                     </tr>";
-                                }   
+                                }
                             } else {
                                 echo "<tr><td colspan='6'>No members found</td></tr>";
                             }
@@ -145,24 +147,18 @@ $result = $conn->query($sql);
                 </div>
                 <div class="pagination">
                     <?php if ($total_pages > 1): ?>
-                        <!-- Previous button -->
                         <?php if ($current_page > 1): ?>
                             <a href="?page=<?php echo $current_page - 1; ?>" class="page-btn">‹ Previous</a>
                         <?php endif; ?>
-                        
-                        <!-- Page numbers -->
                         <?php
                         $start_page = max(1, $current_page - 2);
                         $end_page = min($total_pages, $current_page + 2);
-                        
                         for ($i = $start_page; $i <= $end_page; $i++):
                         ?>
                             <a href="?page=<?php echo $i; ?>" class="page-btn <?php echo ($i == $current_page) ? 'active' : ''; ?>">
                                 <?php echo $i; ?>
                             </a>
                         <?php endfor; ?>
-                        
-                        <!-- Next button -->
                         <?php if ($current_page < $total_pages): ?>
                             <a href="?page=<?php echo $current_page + 1; ?>" class="page-btn">Next ›</a>
                         <?php endif; ?>
@@ -174,7 +170,7 @@ $result = $conn->query($sql);
 
     <script src="../js/pagination.js"></script>
 </body>
-</html> 
+</html>
 <?php
 $conn->close();
 ?>

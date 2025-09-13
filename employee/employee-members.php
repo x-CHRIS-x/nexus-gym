@@ -53,7 +53,7 @@ $result = $conn->query($sql);
             <!-- Left Card: Add/Edit Member Form -->
             <div class="member-form-card">
                 <div class="card-header">Add New Member</div>
-                <form method = 'POST' action = 'add-member.php' class="member-form" autocomplete="off">
+                <form method="POST" action="add-member.php" class="member-form" autocomplete="off">
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
                         <input type="text" id="fullName" name="fullName" required>
@@ -61,6 +61,11 @@ $result = $conn->query($sql);
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required>
+                    </div>
+                    <!-- 🔹 Password field right after Email -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
@@ -95,11 +100,11 @@ $result = $conn->query($sql);
                 <div class="card-header">Members List</div>
                 <div class="table-controls">
                     <input type="text" class="search-bar" placeholder="Search members...">
-                        <select class="filter-dropdown">
-                            <option value="">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
+                    <select class="filter-dropdown">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
                 </div>
                 <div class="table-responsive">
                     <table class="members-table">
@@ -133,7 +138,7 @@ $result = $conn->query($sql);
                                     </tr>";
                                 }   
                             } else {
-                                echo "<tr><td colspan='6'>No members found</td></tr>";
+                                echo "<tr><td colspan='7'>No members found</td></tr>";
                             }
                             ?>
                         </tbody>

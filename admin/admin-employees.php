@@ -23,7 +23,6 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | Admin - Employees</title>
     <link rel="stylesheet" href="admin.css">
-
 </head>
 <body>
     <!-- Sidebar -->
@@ -53,7 +52,7 @@ $result = $conn->query($sql);
             <!-- Left Card: Add/Edit Employee Form -->
             <div class="member-form-card">
                 <div class="card-header">Add New Employee</div>
-                <form method = "POST" action = "add-employee.php" class="member-form" autocomplete="off">
+                <form method="POST" action="add-employee.php" class="member-form" autocomplete="off">
                     <div class="form-group">
                         <label for="empFullName">Full Name</label>
                         <input type="text" id="empFullName" name="empFullName" required>
@@ -61,6 +60,10 @@ $result = $conn->query($sql);
                     <div class="form-group">
                         <label for="empEmail">Email</label>
                         <input type="email" id="empEmail" name="empEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empPassword">Password</label>
+                        <input type="password" id="empPassword" name="empPassword" required>
                     </div>
                     <div class="form-group">
                         <label for="empPhone">Phone Number</label>
@@ -94,6 +97,7 @@ $result = $conn->query($sql);
                     </div>
                 </form>
             </div>
+
             <!-- Right Card: Employees List Table -->
             <div class="member-table-card">
                 <div class="card-header">Employees List</div>
@@ -154,16 +158,13 @@ $result = $conn->query($sql);
                 </div>
                 <div class="pagination">
                     <?php if ($total_pages > 1): ?>
-                        <!-- Previous button -->
                         <?php if ($current_page > 1): ?>
                             <a href="?page=<?php echo $current_page - 1; ?>" class="page-btn">‹ Previous</a>
                         <?php endif; ?>
                         
-                        <!-- Page numbers -->
                         <?php
                         $start_page = max(1, $current_page - 2);
                         $end_page = min($total_pages, $current_page + 2);
-                        
                         for ($i = $start_page; $i <= $end_page; $i++):
                         ?>
                             <a href="?page=<?php echo $i; ?>" class="page-btn <?php echo ($i == $current_page) ? 'active' : ''; ?>">
@@ -171,7 +172,6 @@ $result = $conn->query($sql);
                             </a>
                         <?php endfor; ?>
                         
-                        <!-- Next button -->
                         <?php if ($current_page < $total_pages): ?>
                             <a href="?page=<?php echo $current_page + 1; ?>" class="page-btn">Next ›</a>
                         <?php endif; ?>
@@ -186,4 +186,4 @@ $result = $conn->query($sql);
 </html>
 <?php
 $conn->close();
-?> 
+?>

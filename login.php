@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,6 +6,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NEXUS GYM – Login</title>
   <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .error-message {
+      display: none;
+      background-color: #ffe5e5;
+      color: #ff0000;
+      border-left: 5px solid #ff0000;
+      padding: 10px 15px;
+      margin: 10px 0;
+      font-size: 14px;
+      border-radius: 4px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+  </style>
 </head>
 <body>
   <div class="login-wrap">
@@ -62,10 +81,15 @@
             </div>
           </div>
 
-          <form action="member/member-dashboard.php" id="member-form">
+          <!-- Modern error message -->
+          <div class="error-message" id="error-msg"><?php if(isset($_SESSION['login_error'])) echo $_SESSION['login_error']; ?></div>
+
+          <!-- Member Login -->
+          <form action="login-process.php" method="POST" id="member-form">
+            <input type="hidden" name="role" value="member">
             <div class="form-group">
-              <label for="username">Username</label>
-              <input id="username" name="username" type="text" class="input" placeholder="Enter your username" required/>
+              <label for="username">Email</label>
+              <input id="username" name="username" type="text" class="input" placeholder="Enter your email" required/>
             </div>
             <div class="form-group">
               <label for="password">Password</label>
@@ -74,10 +98,12 @@
             <button type="submit" class="btn w-full">Sign In</button>
           </form>
           
-          <form action="employee/employee-dashboard.php" id="employee-form">
+          <!-- Employee Login -->
+          <form action="login-process.php" method="POST" id="employee-form">
+            <input type="hidden" name="role" value="employee">
             <div class="form-group">
-              <label for="username-employee">Username</label>
-              <input id="username-employee" name="username" type="text" class="input" placeholder="Enter your username" required/>
+              <label for="username-employee">Email</label>
+              <input id="username-employee" name="username" type="text" class="input" placeholder="Enter your email" required/>
             </div>
             <div class="form-group">
               <label for="password-employee">Password</label>
@@ -86,10 +112,12 @@
             <button type="submit" class="btn w-full">Sign In</button>
           </form>
           
-          <form action="admin/admin-dashboard.php" id="admin-form">
+          <!-- Admin Login -->
+          <form action="login-process.php" method="POST" id="admin-form">
+            <input type="hidden" name="role" value="admin">
             <div class="form-group">
-              <label for="username-admin">Username</label>
-              <input id="username-admin" name="username" type="text" class="input" placeholder="Enter your username" required/>
+              <label for="username-admin">Email</label>
+              <input id="username-admin" name="username" type="text" class="input" placeholder="Enter your email" required/>
             </div>
             <div class="form-group">
               <label for="password-admin">Password</label>
@@ -105,6 +133,14 @@
     </div>
   </div>
 
-
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const errorBox = document.getElementById('error-msg');
+      if(errorBox.textContent.trim() !== "") {
+        errorBox.style.display = 'block';
+      }
+    });
+  </script>
+  <?php unset($_SESSION['login_error']); ?>
 </body>
 </html>
