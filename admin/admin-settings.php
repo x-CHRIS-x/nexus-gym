@@ -74,10 +74,10 @@ $row = $result ? $result->fetch_assoc() : ['name' => '', 'email' => ''];
             <?php if ($msg) echo "<p style='color:green;'>$msg</p>"; ?>
             <form method="post" action="admin-update.php">
                 <label>Admin Name</label>
-                <input type="text" name="name" value="<?php echo isset($row['name']) ? htmlspecialchars($row['name']) : ''; ?>" required>
+                <input type="text" name="name" value="<?php echo isset($row['username']) ? htmlspecialchars($row['username']) : ''; ?>" >
 
                 <label>Email</label>
-                <input type="email" name="email" value="<?php echo ($row['email']); ?>" required>
+                <input type="email" name="email" value="<?php echo ($row['email']); ?>" >
 
                 <label>Password</label>
                 <input type="password" name="password" placeholder="Leave blank to keep current">
