@@ -66,16 +66,16 @@ if ($edit_id) {
                     <?php endif; ?>
                     <div class="form-group">
                         <label for="empFullName">Full Name</label>
-                        <input type="text" id="empFullName" name="empFullName" value="<?php echo $edit_row ? htmlspecialchars($edit_row['full_name']) : ''; ?>" required>
+                        <input type="text" id="empFullName" name="empFullName" value="<?php echo $edit_row ? ($edit_row['full_name']) : ''; ?>" required>
                     </div>
                     <?php
                     if (isset($_GET['error'])) {
-                        echo '<div style="color: red; margin-bottom: 10px;">' . htmlspecialchars($_GET['error']) . '</div>';
+                        echo '<div style="color: red; margin-bottom: 10px;">' . ($_GET['error']) . '</div>';
                     }
                     ?>
                     <div class="form-group">
                         <label for="empEmail">Email</label>
-                        <input type="email" id="empEmail" name="empEmail" value="<?php echo $edit_row ? htmlspecialchars($edit_row['email']) : ''; ?>" required>
+                        <input type="email" id="empEmail" name="empEmail" value="<?php echo $edit_row ? ($edit_row['email']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="empPassword">Password</label>
@@ -83,15 +83,15 @@ if ($edit_id) {
                     </div>
                     <div class="form-group">
                         <label for="empPhone">Phone Number</label>
-                        <input type="text" id="empPhone" name="empPhone" value="<?php echo $edit_row ? htmlspecialchars($edit_row['phone']) : ''; ?>" required>
+                        <input type="text" id="empPhone" name="empPhone" value="<?php echo $edit_row ? ($edit_row['phone']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="empPosition">Position</label>
-                        <input type="text" id="empPosition" name="empPosition" value="<?php echo $edit_row ? htmlspecialchars($edit_row['position']) : ''; ?>" placeholder="e.g., Trainer, Front Desk, Cleaner" required>
+                        <input type="text" id="empPosition" name="empPosition" value="<?php echo $edit_row ? ($edit_row['position']) : ''; ?>" placeholder="e.g., Trainer, Front Desk, Cleaner" required>
                     </div>
                     <div class="form-group">
                         <label for="empDateHired">Date Hired</label>
-                        <input type="date" id="empDateHired" name="empDateHired" value="<?php echo $edit_row ? htmlspecialchars($edit_row['date_hired']) : ''; ?>" required>
+                        <input type="date" id="empDateHired" name="empDateHired" value="<?php echo $edit_row ? ($edit_row['date_hired']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="empStatus">Status</label>
@@ -121,10 +121,6 @@ if ($edit_id) {
                 <div class="table-responsive">
                     <table class="members-table">
                         <thead>
-                                    <td>
-                                        <a href='admin-employees.php?edit_id=<?php echo $row["id"]; ?>' class='btn-action btn-edit' title='Edit'><img src='../images/icons/edit-icon.svg' alt='Edit'></a>
-                                        <a href='delete_employee.php?id=<?php echo $row["id"]; ?>' class='btn-action btn-delete' title='Delete' onclick='return confirm("Are you sure you want to delete this employee?")'><img src='../images/icons/delete-icon.svg' alt='Delete'></a>
-                                    </td>
                                 <th>Phone Number</th>
                                 <th>Position</th>
                                 <th>Date Hired</th>
@@ -137,18 +133,23 @@ if ($edit_id) {
                             if ($result->num_rows > 0) {
                                 while($row = $result->fetch_assoc()) {
                                     $statusClass = ($row["status"] == "Active") ? "status-active" : "status-inactive";
-                                    echo "<tr>
-                                    <td>".$row["id"]."</td>
-                                    <td>".$row["full_name"]."</td>
-                                    <td>".$row["email"]."</td>
-                                    <td>".$row["phone"]."</td>
-                                    <td>".$row["position"]."</td>
-                                    <td>".$row["date_hired"]."</td>
-                                    <td><span class='".$statusClass."'>".$row["status"]."</span></td>
-                                    <td>
-                                        <button class='btn-action btn-edit' title='Edit'><img src='../images/icons/edit-icon.svg' alt='Edit'></button>
-                                        <a href='delete_employee.php?id=".$row["id"]."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this employee?\")'><img src='../images/icons/delete-icon.svg' alt='Delete'></a>
-                                    </td>
+                                    echo "
+                                    <tr>
+                                        <td>".$row["id"]."</td>
+                                        <td>".$row["full_name"]."</td>
+                                        <td>".$row["email"]."</td>
+                                        <td>".$row["phone"]."</td>
+                                        <td>".$row["position"]."</td>
+                                        <td>".$row["date_hired"]."</td>
+                                        <td><span class='".$statusClass."'>".$row["status"]."</span></td>
+                                        <td>
+                                        <a href='admin-employees.php?edit_id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
+                                            <img src='../images/icons/edit-icon.svg' alt='Edit'>
+                                        </a>
+                                        <a href='delete_employee.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this employee?\")'>
+                                            <img src='../images/icons/delete-icon.svg' alt='Delete'>
+                                        </a>
+                                        </td>
                                     </tr>";
                                 }
                             } else {

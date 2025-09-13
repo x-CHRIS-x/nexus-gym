@@ -15,6 +15,14 @@ $total_pages = ceil($total_rows / $rows_per_page);
 // Get members with pagination
 $sql = "SELECT * FROM members LIMIT $rows_per_page OFFSET $offset";
 $result = $conn->query($sql);
+
+// Inline edit logic
+$edit_id = isset($_GET['edit_id']) ? intval($_GET['edit_id']) : null;
+$edit_row = null;
+if ($edit_id) {
+    $edit_result = $conn->query("SELECT * FROM members WHERE id=$edit_id LIMIT 1");
+    $edit_row = $edit_result ? $edit_result->fetch_assoc() : null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,49 +60,52 @@ $result = $conn->query($sql);
         <div class="members-container">
             <!-- Left Card: Add/Edit Member Form -->
             <div class="member-form-card">
-                <div class="card-header">Add New Member</div>
-                <form method='POST' action='add-member.php' class="member-form" autocomplete="off">
+                <div class="card-header"><?php echo $edit_id ? 'Edit Member' : 'Add New Member'; ?></div>
+                <form method="POST" action="<?php echo $edit_id ? 'edit-member.php' : 'add-member.php'; ?>" class="member-form" autocomplete="off">
+                    <?php if ($edit_id): ?>
+                        <input type="hidden" name="id" value="<?php echo $edit_id; ?>">
+                    <?php endif; ?>
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" required>
+                        <input type="text" id="fullName" name="fullName" value="<?php echo $edit_row ? ($edit_row['full_name']) : ''; ?>" required>
                     </div>
                     <?php
                     if (isset($_GET['error'])) {
-                        echo '<div style="color: red; margin-bottom: 10px;">' . htmlspecialchars($_GET['error']) . '</div>';
+                        echo '<div style="color: red; margin-bottom: 10px;">' . ($_GET['error']) . '</div>';
                     }
                     ?>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" value="<?php echo $edit_row ? ($edit_row['email']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="text" id="password" name="password" placeholder="e.g., member123" required>
+                        <input type="text" id="password" name="password" placeholder="e.g., member123" <?php echo $edit_id ? '' : 'required'; ?> >
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
-                        <input type="text" id="phone" name="phone" required>
+                        <input type="text" id="phone" name="phone" value="<?php echo $edit_row ? ($edit_row['phone']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="membershipType">Membership Type</label>
                         <select id="membershipType" name="membershipType" required>
-                            <option value="Standard">Standard</option>
-                            <option value="Premium">Premium</option>
+                            <option value="Standard" <?php echo ($edit_row && $edit_row['membership_type'] == 'Standard') ? 'selected' : ''; ?>>Standard</option>
+                            <option value="Premium" <?php echo ($edit_row && $edit_row['membership_type'] == 'Premium') ? 'selected' : ''; ?>>Premium</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="startDate">Start Date</label>
-                        <input type="date" id="startDate" name="startDate" required>
+                        <input type="date" id="startDate" name="startDate" value="<?php echo $edit_row && !empty($edit_row['join_date']) ? htmlspecialchars($edit_row['join_date']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="status">Status</label>
                         <select id="status" name="status" required>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
+                            <option value="Active" <?php echo ($edit_row && $edit_row['status'] == 'Active') ? 'selected' : ''; ?>>Active</option>
+                            <option value="Inactive" <?php echo ($edit_row && $edit_row['status'] == 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
                         </select>
                     </div>
                     <div class="form-buttons">
-                        <button type="submit" class="btn btn-save">Save Member</button>
+                        <button type="submit" class="btn btn-save"><?php echo $edit_id ? 'Update Member' : 'Save Member'; ?></button>
                         <button type="button" class="btn btn-clear">Clear Form</button>
                     </div>
                 </form>
@@ -114,10 +125,6 @@ $result = $conn->query($sql);
                 <div class="table-responsive">
                     <table class="members-table">
                         <thead>
-                            <tr>
-                                <th>Full Name</th>
-                                <th>Email</th>
-                                <th>Phone Number</th>
                                 <th>Membership Type</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -135,8 +142,12 @@ $result = $conn->query($sql);
                                     <td>".$row["membership_type"]."</td>
                                     <td><span class='".$statusClass."'>".$row["status"]."</span></td>
                                     <td>
-                                        <a href='edit-member.php?id=".$row["id"]."' class='btn-action btn-edit' title='Edit'><img src='../images/icons/edit-icon.svg' alt='Edit'></a>
-                                        <a href='delete_member.php?id=".$row["id"]."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'><img src='../images/icons/delete-icon.svg' alt='Delete'></a>
+                                        <a href='admin-members.php?edit_id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
+                                            <img src='../images/icons/edit-icon.svg' alt='Edit'>
+                                        </a>
+                                        <a href='delete_member.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>
+                                            <img src='../images/icons/delete-icon.svg' alt='Delete'>
+                                        </a>
                                     </td>
                                     </tr>";
                                 }

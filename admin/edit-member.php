@@ -14,9 +14,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id'])) {
     // Only update password if provided
     if (!empty($password)) {
         $hashed = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "UPDATE members SET full_name='$name', email='$email', phone='$phone', membership_type='$membershipType', start_date='$startDate', status='$status', password='$hashed' WHERE id=$id";
+        $sql = "UPDATE members SET full_name='$name', email='$email', phone='$phone', membership_type='$membershipType', join_date='$startDate', status='$status', password='$hashed' WHERE id=$id";
     } else {
-        $sql = "UPDATE members SET full_name='$name', email='$email', phone='$phone', membership_type='$membershipType', start_date='$startDate', status='$status' WHERE id=$id";
+        $sql = "UPDATE members SET full_name='$name', email='$email', phone='$phone', membership_type='$membershipType', join_date='$startDate', status='$status' WHERE id=$id";
     }
     $conn->query($sql);
     header("Location: admin-members.php");
