@@ -7,7 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phone          = $conn->real_escape_string($_POST['phone']);
     $membershipType = $conn->real_escape_string($_POST['membershipType']);
     $status         = $conn->real_escape_string($_POST['status']);
-    $joinDate       = $conn->real_escape_string($_POST['joinDate']); // date input from form
+    $join_date       = $conn->real_escape_string($_POST['join_date']); // date input from form
     
     // Hash password before saving
     $password       = password_hash($_POST['password'], PASSWORD_DEFAULT);

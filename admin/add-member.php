@@ -7,7 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $phone = $_POST['phone'];
     $membership_type = $_POST['membershipType'];
-    $join_date = $_POST['startDate'];
+    $join_date = $_POST['join_date'];
     $status = $_POST['status'];
     $password = $_POST['password']; // new password field
 

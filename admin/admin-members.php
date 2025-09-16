@@ -125,6 +125,10 @@ if ($edit_id) {
                 <div class="table-responsive">
                     <table class="members-table">
                         <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
                                 <th>Membership Type</th>
                                 <th>Status</th>
                                 <th>Actions</th>

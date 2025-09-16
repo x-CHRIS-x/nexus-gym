@@ -65,6 +65,7 @@ if ($edit_id) {
                     <?php if ($edit_id): ?>
                         <input type="hidden" name="id" value="<?php echo $edit_id; ?>">
                     <?php endif; ?>
+                    <!-- Full name field-->
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
                         <input type="text" id="fullName" name="fullName" value="<?php echo $edit_row ? ($edit_row['full_name']) : ''; ?>" required>
@@ -74,19 +75,22 @@ if ($edit_id) {
                         echo '<div style="color: red; margin-bottom: 10px;">' . ($_GET['error']) . '</div>';
                     }
                     ?>
+                    <!-- Email field-->
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" value="<?php echo $edit_row ? ($edit_row['email']) : ''; ?>" required>
                     </div>
-                    <!-- Password field right after Email -->
+                    <!-- Password field-->
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password" <?php echo $edit_id ? '' : 'required'; ?> >
                     </div>
+                    <!-- Phone number field-->
                     <div class="form-group">
                         <label for="phone">Phone Number</label>
                         <input type="text" id="phone" name="phone" value="<?php echo $edit_row ? ($edit_row['phone']) : ''; ?>" required>
                     </div>
+                    <!-- Membership Type field-->
                     <div class="form-group">
                         <label for="membershipType">Membership Type</label>
                         <select id="membershipType" name="membershipType" required>
@@ -94,10 +98,12 @@ if ($edit_id) {
                             <option value="Premium" <?php echo ($edit_row && $edit_row['membership_type'] == 'Premium') ? 'selected' : ''; ?>>Premium</option>
                         </select>
                     </div>
+                    <!-- Start Date field-->
                     <div class="form-group">
                         <label for="startDate">Start Date</label>
                         <input type="date" id="startDate" name="startDate" value="<?php echo $edit_row && !empty($edit_row['join_date']) ? htmlspecialchars($edit_row['join_date']) : ''; ?>" required>
                     </div>
+                    <!-- Status field-->
                     <div class="form-group">
                         <label for="status">Status</label>
                         <select id="status" name="status" required>
