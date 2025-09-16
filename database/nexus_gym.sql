@@ -1,88 +1,145 @@
--- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
 --
--- Host: localhost    Database: nexus_gym
--- ------------------------------------------------------
--- Server version	10.4.32-MariaDB
+-- Host: 127.0.0.1
+-- Generation Time: Sep 16, 2025 at 04:32 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Database: `nexus_gym`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admins`
+--
+
+INSERT INTO `admins` (`id`, `username`, `password`, `email`) VALUES
+(1, 'ADMIN', '$2y$10$2UxIjQ7rsWsksF/UQ39sDOGA.UUAztAqeRjELxfCO6nqyKduMuutS', 'nexus_gym_admin@gmail.com');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `employees`
 --
 
-DROP TABLE IF EXISTS `employees`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `employees` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `full_name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
-  `role` varchar(20) DEFAULT NULL,
   `position` varchar(50) DEFAULT NULL,
   `date_hired` date DEFAULT NULL,
-  `status` varchar(20) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `status` varchar(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `employees`
 --
 
-LOCK TABLES `employees` WRITE;
-/*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (1,'John Santos','john.santos@example.com','09171234567','Admin','Manager','2024-05-10','Active'),(3,'Pedro Reyes','pedro.reyes@example.com','09391234567','Employee','Front Desk','2025-01-05','Inactive'),(4,'john chris','johnchrisledama@gmail.com','09612099217','Admin','Trainer','2025-08-30','Active');
-/*!40000 ALTER TABLE `employees` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `employees` (`id`, `full_name`, `email`, `password`, `phone`, `position`, `date_hired`, `status`) VALUES
+(1, 'John Chris P. Ledama', 'johnchrisledama83@gmail.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09612099217', 'Trainer', '2024-08-30', 'Active'),
+(2, 'employee2', 'employee@gmail.com', '$2y$10$UHhdOMXwWyVANifp6DHMq.LiPP1hXhhA4QdWT.O065ho0hzTfuEM2', '1234567890', 'Trainer', '2024-05-20', 'Active');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `members`
 --
 
-DROP TABLE IF EXISTS `members`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `members` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `full_name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `membership_type` varchar(20) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
-  `join_date` date DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `join_date` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `members`
 --
 
-LOCK TABLES `members` WRITE;
-/*!40000 ALTER TABLE `members` DISABLE KEYS */;
-INSERT INTO `members` VALUES (7,'David Lee','david.lee@example.com','555-4321','Premium','Active','2023-04-05'),(19,'Sophia Hayes','sophia.hayes@example.com','555-6666','Premium','Active','2023-04-18'),(20,'Ethan Rivera','ethan.rivera@example.com','555-7777','Standard','Inactive','2023-03-10'),(21,'Ava James','ava.james@example.com','555-8888','Premium','Active','2023-02-05'),(22,'Logan Brooks','logan.brooks@example.com','555-9999','Standard','Inactive','2023-01-30'),(25,'Ella Foster','ella.foster@example.com','555-3030','Premium','Inactive','2022-10-09'),(27,'Amelia Ross','amelia.ross@example.com','555-5050','Premium','Inactive','2022-08-17'),(28,'Alexander Price','alex.price@example.com','555-6060','Standard','Active','2022-07-01'),(30,'Benjamin Cox','ben.cox@example.com','555-8080','Standard','Inactive','2022-05-26'),(31,'Harper Gray','harper.gray@example.com','555-9090','Premium','Active','2022-04-19'),(33,'Lily Long','lily.long@example.com','555-2323','Premium','Inactive','2022-02-05');
-/*!40000 ALTER TABLE `members` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+INSERT INTO `members` (`id`, `full_name`, `email`, `password`, `phone`, `membership_type`, `status`, `join_date`) VALUES
+(1, 'crispo', 'gian@gmail.com', '$2y$10$V5aKTGFwH9uQg6XQI7q1wuDv.cDHcnNhPOAOb78jQZvY2oYrf6POW', '09123456789', 'Standard', 'Active', '2025-09-12'),
+(2, 'gngn', 'gngn@gmail.com', '$2y$10$hd2pGFc8lZt7KN/d.FW0PuGoukEsr1p9aQ3/gPJS9Kgp6g9hRdjdG', '1234', 'Standard', 'Active', '2000-08-30'),
+(3, 'member', 'member@gmail.com', '$2y$10$a9B8AWeUmZl7JCupgd8Hl...GruTveiycVjN/aoCH28eBFro7f.iO', '1234567890', 'Premium', 'Active', '0000-00-00');
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- Indexes for table `employees`
+--
+ALTER TABLE `employees`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `members`
+--
+ALTER TABLE `members`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `employees`
+--
+ALTER TABLE `employees`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `members`
+--
+ALTER TABLE `members`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2025-09-13 11:22:44
