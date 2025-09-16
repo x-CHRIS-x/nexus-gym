@@ -98,10 +98,10 @@ if ($edit_id) {
                             <option value="Premium" <?php echo ($edit_row && $edit_row['membership_type'] == 'Premium') ? 'selected' : ''; ?>>Premium</option>
                         </select>
                     </div>
-                    <!-- Start Date field-->
+                    <!-- Join Date field-->
                     <div class="form-group">
-                        <label for="startDate">Start Date</label>
-                        <input type="date" id="startDate" name="startDate" value="<?php echo $edit_row && !empty($edit_row['join_date']) ? htmlspecialchars($edit_row['join_date']) : ''; ?>" required>
+                        <label for="join_date">Join Date</label>
+                        <input type="date" id="join_date" name="join_date" value="<?php echo $edit_row && !empty($edit_row['join_date']) ? htmlspecialchars($edit_row['join_date']) : ''; ?>" required>
                     </div>
                     <!-- Status field-->
                     <div class="form-group">

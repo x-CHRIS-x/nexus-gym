@@ -94,8 +94,8 @@ if ($edit_id) {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="startDate">Start Date</label>
-                        <input type="date" id="startDate" name="startDate" value="<?php echo $edit_row && !empty($edit_row['join_date']) ? htmlspecialchars($edit_row['join_date']) : ''; ?>" required>
+                        <label for="join_date">Join Date</label>
+                        <input type="date" id="join_date" name="join_date" value="<?php echo $edit_row && !empty($edit_row['join_date']) ? htmlspecialchars($edit_row['join_date']) : ''; ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="status">Status</label>
