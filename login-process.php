@@ -8,7 +8,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     if ($role === "admin") {
-        // Admin login from DB
         $sql = "SELECT * FROM admins WHERE email='$username' LIMIT 1";
     } elseif ($role === "member") {
         $sql = "SELECT * FROM members WHERE email='$username' LIMIT 1";
@@ -25,14 +24,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Check hashed password
         if (password_verify($password, $row['password'])) {
+            // store common info
             $_SESSION['user_id'] = $row['id'];
             $_SESSION['role']    = $role;
 
-            if ($role === "admin") {
-                header("Location: admin/admin-dashboard.php");
-            } elseif ($role === "member") {
+            // store role-specific info
+            if ($role === "member") {
+                $_SESSION['member_id']    = $row['id'];
+                $_SESSION['member_name']  = $row['full_name']; // change if column is different
+                $_SESSION['member_email'] = $row['email'];
                 header("Location: member/member-dashboard.php");
-            } else {
+            } elseif ($role === "admin") {
+                $_SESSION['admin_id']   = $row['id'];
+                $_SESSION['admin_name'] = $row['full_name'] ?? "Admin";
+                header("Location: admin/admin-dashboard.php");
+            } elseif ($role === "employee") {
+                $_SESSION['employee_id']   = $row['id'];
+                $_SESSION['employee_name'] = $row['full_name'];
                 header("Location: employee/employee-dashboard.php");
             }
             exit();
