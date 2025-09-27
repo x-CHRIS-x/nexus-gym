@@ -5,8 +5,21 @@
     font-weight: 600;
     margin-right: 24px;
 }
-/* ---- Flex Utility Classes (for admin-dashboard.html) ---- */
-.flex-row {
+/* ---- Flex Utility Classes (for admin-dashboard.html) ---- *.btn-edit:hover {
+    background: #222;
+}
+.btn-renew {
+    background: #1a472a;
+    color: #90EE90;
+    padding: 6px 15px;
+}
+.btn-renew:hover {
+    background: #2a573a;
+}
+.btn-delete {
+    background: #221111;
+    color: #fca5a5;
+}{
     display: flex;
 }
 .flex-gap-24 {
@@ -254,11 +267,17 @@ body, .main-content {
 .btn-edit img {
     filter: invert(38%) sepia(99%) saturate(7492%) hue-rotate(203deg) brightness(98%) contrast(101%);
 }
+.btn-renew img {
+    filter: invert(70%) sepia(52%) saturate(402%) hue-rotate(84deg) brightness(89%) contrast(84%);
+}
 .btn-delete img {
     filter: invert(18%) sepia(99%) saturate(7492%) hue-rotate(-20deg) brightness(98%) contrast(101%);
 }
 .btn-edit:hover {
     background: #222;
+}
+.btn-renew:hover {
+    background: #1a472a;
 }
 .btn-delete {
     background: #221111;

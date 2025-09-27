@@ -1,5 +1,12 @@
 <?php
+session_start();
 include '../db.php';
+
+// Check if user is logged in and has appropriate role
+if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'employee' && $_SESSION['role'] !== 'admin')) {
+    header("Location: ../login.php");
+    exit();
+}
 
 // Pagination settings
 $rows_per_page = 10;
@@ -40,6 +47,7 @@ if ($edit_id) {
             <li><a href="admin-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
             <li><a href="admin-employees.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
             <li class="active"><a href="admin-members.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="admin-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
             <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
@@ -93,12 +101,13 @@ if ($edit_id) {
                                     <td>".$row["membership_type"]."</td>
                                     <td><span class='".$statusClass."'>".$row["status"]."</span></td>
                                     <td>
-                                        <a href='admin-members.php?edit_id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
+                                        <a href='admin-edit-member.php?id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
                                             <img src='../images/icons/edit-icon.svg' alt='Edit'>
                                         </a>
                                         <a href='delete_member.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>
                                             <img src='../images/icons/delete-icon.svg' alt='Delete'>
                                         </a>
+                                        <a href='renew-membership.php?id=".$row['id']."' class='btn-action btn-renew' style='background:#22c55e;color:#fff;text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:38px;'>Renew</a>
                                     </td>
                                     </tr>";
                                 }

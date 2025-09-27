@@ -39,6 +39,7 @@ if ($edit_id) {
         <ul class="nav-menu">
             <li><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
             <li class="active"><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
             <li><a href="employee-schedule.php"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
             <li><a href="employee-fitness-plans.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
         </ul>
@@ -58,66 +59,7 @@ if ($edit_id) {
         </div>
 
         <div class="members-container">
-            <!-- Left Card: Add/Edit Member Form -->
-            <div class="member-form-card">
-                <div class="card-header"><?php echo $edit_id ? 'Edit Member' : 'Add New Member'; ?></div>
-                <form method="POST" action="<?php echo $edit_id ? 'edit_member.php' : 'add_member.php'; ?>" class="member-form" autocomplete="off">
-                    <?php if ($edit_id): ?>
-                        <input type="hidden" name="id" value="<?php echo $edit_id; ?>">
-                    <?php endif; ?>
-                    <!-- Full name field-->
-                    <div class="form-group">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" value="<?php echo $edit_row ? ($edit_row['full_name']) : ''; ?>" required>
-                    </div>
-                    <?php
-                    if (isset($_GET['error'])) {
-                        echo '<div style="color: red; margin-bottom: 10px;">' . ($_GET['error']) . '</div>';
-                    }
-                    ?>
-                    <!-- Email field-->
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" value="<?php echo $edit_row ? ($edit_row['email']) : ''; ?>" required>
-                    </div>
-                    <!-- Password field-->
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" <?php echo $edit_id ? '' : 'required'; ?> >
-                    </div>
-                    <!-- Phone number field-->
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="text" id="phone" name="phone" value="<?php echo $edit_row ? ($edit_row['phone']) : ''; ?>" required>
-                    </div>
-                    <!-- Membership Type field-->
-                    <div class="form-group">
-                        <label for="membershipType">Membership Type</label>
-                        <select id="membershipType" name="membershipType" required>
-                            <option value="Standard" <?php echo ($edit_row && $edit_row['membership_type'] == 'Standard') ? 'selected' : ''; ?>>Standard</option>
-                            <option value="Premium" <?php echo ($edit_row && $edit_row['membership_type'] == 'Premium') ? 'selected' : ''; ?>>Premium</option>
-                        </select>
-                    </div>
-                    <!-- Join Date field-->
-                    <div class="form-group">
-                        <label for="join_date">Join Date</label>
-                        <input type="date" id="join_date" name="join_date" value="<?php echo $edit_row && !empty($edit_row['join_date']) ? htmlspecialchars($edit_row['join_date']) : ''; ?>" required>
-                    </div>
-                    <!-- Status field-->
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <select id="status" name="status" required>
-                            <option value="Active" <?php echo ($edit_row && $edit_row['status'] == 'Active') ? 'selected' : ''; ?>>Active</option>
-                            <option value="Inactive" <?php echo ($edit_row && $edit_row['status'] == 'Inactive') ? 'selected' : ''; ?>>Inactive</option>
-                        </select>
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit" class="btn btn-save"><?php echo $edit_id ? 'Update Member' : 'Save Member'; ?></button>
-                        <button type="button" class="btn btn-clear">Clear Form</button>
-                    </div>
-                </form>
-            </div>
-            <!-- Right Card: Members List Table -->
+            <!-- Members List Table Only -->
             <div class="member-table-card">
                 <div class="card-header">Members List</div>
                 <div class="table-controls">
@@ -150,7 +92,7 @@ if ($edit_id) {
                                     <td>".$row["membership_type"]."</td>
                                     <td><span class='".$statusClass."'>".$row["status"]."</span></td>
                                     <td>
-                                        <a href='employee-members.php?edit_id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
+                                        <a href='employee-edit-member.php?id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
                                             <img src='../images/icons/edit-icon.svg' alt='Edit'>
                                         </a>
                                         <a href='delete_member.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>

@@ -13,6 +13,35 @@ if ($member_id) {
     $stmt->execute();
     $progress = $stmt->get_result()->fetch_assoc();
     $stmt->close();
+
+    // First, let's check how many trainers are hired
+    $hired_query = "SELECT e.id, e.full_name 
+                    FROM employees e 
+                    INNER JOIN notifications n ON e.id = n.employee_id
+                    WHERE n.member_id = ? AND n.message = 'hired'";
+    $stmt = $conn->prepare($hired_query);
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $hired_trainers = $stmt->get_result();
+    $hired_count = $hired_trainers->num_rows;
+    $stmt->close();
+
+    // Fetch upcoming booked sessions
+    $sessions_query = "SELECT ts.session_date as date, ts.session_time as shift_time, 
+                             e.position as job_role, e.full_name as trainer_name
+                      FROM training_sessions ts
+                      INNER JOIN employees e ON ts.trainer_id = e.id
+                      WHERE ts.member_id = ? 
+                      AND ts.status = 'scheduled'
+                      AND ts.session_date >= CURRENT_DATE
+                      ORDER BY ts.session_date, ts.session_time
+                      LIMIT 5";
+    $stmt = $conn->prepare($sessions_query);
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $upcoming_classes = $stmt->get_result();
+    $class_count = $upcoming_classes->num_rows;
+    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
@@ -171,16 +200,25 @@ if ($member_id) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Yoga</td>
-                            <td>Aug 18, 10:00 AM</td>
-                            <td>Coach Gian</td>
-                        </tr>
-                        <tr>
-                            <td>HIIT</td>
-                            <td>Aug 19, 08:00 AM</td>
-                            <td>Coach Maofyy</td>
-                        </tr>
+                        <?php 
+                        if (isset($upcoming_classes) && $class_count > 0) {
+                            while ($class = $upcoming_classes->fetch_assoc()) {
+                                $date = date('M d', strtotime($class['date']));
+                                $time = $class['shift_time'];
+                                echo "<tr>
+                                    <td>" . htmlspecialchars($class['job_role']) . "</td>
+                                    <td>{$date}, {$time}</td>
+                                    <td>" . htmlspecialchars($class['trainer_name']) . "</td>
+                                </tr>";
+                            }
+                        } else {
+                            if ($hired_count > 0) {
+                                echo "<tr><td colspan='3' style='text-align: center;'>You have {$hired_count} hired trainer(s) but no upcoming classes scheduled yet.</td></tr>";
+                            } else {
+                                echo "<tr><td colspan='3' style='text-align: center;'>No trainers hired yet. Visit the Classes page to hire a trainer.</td></tr>";
+                            }
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>

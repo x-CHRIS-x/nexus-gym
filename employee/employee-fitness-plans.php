@@ -70,6 +70,7 @@ $stmtNotif->close();
   <ul class="nav-menu">
     <li><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" class="nav-icon"> Dashboard</a></li>
     <li><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" class="nav-icon"> Members</a></li>
+    <li><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
     <li><a href="employee-schedule.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" class="nav-icon"> Schedule</a></li>
     <li class="active"><a href="employee-fitness-plans.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" class="nav-icon"> Fitness Plans</a></li>
   </ul>

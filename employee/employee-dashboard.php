@@ -1,3 +1,62 @@
+<?php
+include '../db.php';
+session_start();
+
+// Get employee ID from session (you'll need to set this during login)
+$employee_id = 1; // Temporarily hardcoded, should come from $_SESSION['employee_id']
+
+// Fetch counts for summary cards
+$today = date('Y-m-d');
+
+// Count scheduled classes/sessions for today
+$schedule_query = "SELECT COUNT(*) as class_count FROM schedules 
+                  WHERE employee_id = ? AND date = ? AND job_role LIKE '%trainer%'";
+$stmt = $conn->prepare($schedule_query);
+$stmt->bind_param("is", $employee_id, $today);
+$stmt->execute();
+$classes_today = $stmt->get_result()->fetch_assoc()['class_count'];
+
+// Count assigned members (from notifications table where message = 'hired')
+$members_query = "SELECT COUNT(DISTINCT member_id) as member_count FROM notifications 
+                 WHERE employee_id = ? AND message = 'hired'";
+$stmt = $conn->prepare($members_query);
+$stmt->bind_param("i", $employee_id);
+$stmt->execute();
+$assigned_members = $stmt->get_result()->fetch_assoc()['member_count'];
+
+// Fetch upcoming schedule
+$upcoming_schedule = "SELECT s.date, s.shift_time, s.job_role, 
+                     GROUP_CONCAT(m.full_name SEPARATOR ', ') as assigned_members
+                     FROM schedules s
+                     LEFT JOIN notifications n ON s.employee_id = n.employee_id
+                     LEFT JOIN members m ON n.member_id = m.id
+                     WHERE s.employee_id = ? AND s.date >= CURRENT_DATE()
+                     GROUP BY s.id
+                     ORDER BY s.date, s.shift_time
+                     LIMIT 4";
+$stmt = $conn->prepare($upcoming_schedule);
+$stmt->bind_param("i", $employee_id);
+$stmt->execute();
+$schedule_result = $stmt->get_result();
+
+// Fetch assigned members with their details
+$assigned_members_query = "SELECT DISTINCT m.full_name, m.membership_type, 
+                          CASE 
+                            WHEN EXISTS (
+                              SELECT 1 FROM schedules s 
+                              WHERE s.employee_id = n.employee_id 
+                              AND s.date = CURRENT_DATE
+                            ) THEN 'Present'
+                            ELSE 'Absent'
+                          END as attendance
+                          FROM notifications n
+                          JOIN members m ON n.member_id = m.id
+                          WHERE n.employee_id = ? AND n.message = 'hired'";
+$stmt = $conn->prepare($assigned_members_query);
+$stmt->bind_param("i", $employee_id);
+$stmt->execute();
+$members_result = $stmt->get_result();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,6 +73,7 @@
         <ul class="nav-menu">
             <li class="active"><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
             <li><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
             <li><a href="employee-schedule.php"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
             <li><a href="employee-fitness-plans.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
         </ul>
@@ -49,23 +109,31 @@
         <div class="dashboard-summary-row">
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-classes-icon.svg" alt="Classes Today" class="summary-icon">
-                <div class="summary-number">4</div>
+                <div class="summary-number"><?php echo $classes_today; ?></div>
                 <div class="summary-label">Classes Today</div>
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-members-icon.svg" alt="Assigned Members" class="summary-icon">
-                <div class="summary-number">12</div>
+                <div class="summary-number"><?php echo $assigned_members; ?></div>
                 <div class="summary-label">Assigned Members</div>
             </div>
             <div class="dashboard-card">
-                <img src="../images/icons/clock-icon.svg" alt="Hours Logged" class="summary-icon">
-                <div class="summary-number">32</div>
-                <div class="summary-label">Hours Logged (This Week)</div>
+                <img src="../images/icons/dashboard-classes-icon.svg" alt="Available Days" class="summary-icon">
+                <div class="summary-number"><?php 
+                    $avail_query = "SELECT COUNT(DISTINCT available_day) as days FROM coach_availability WHERE employee_id = $employee_id";
+                    $avail_result = $conn->query($avail_query);
+                    echo $avail_result->fetch_assoc()['days'];
+                ?></div>
+                <div class="summary-label">Available Days</div>
             </div>
             <div class="dashboard-card">
-                <img src="../images/icons/dashboard-progress-icon.svg" alt="Sessions Completed" class="summary-icon">
-                <div class="summary-number">3</div>
-                <div class="summary-label">Sessions Completed</div>
+                <img src="../images/icons/dashboard-progress-icon.svg" alt="Total Sessions" class="summary-icon">
+                <div class="summary-number"><?php 
+                    $sessions_query = "SELECT COUNT(*) as total FROM schedules WHERE employee_id = $employee_id";
+                    $sessions_result = $conn->query($sessions_query);
+                    echo $sessions_result->fetch_assoc()['total'];
+                ?></div>
+                <div class="summary-label">Total Sessions</div>
             </div>
         </div>
 
@@ -85,28 +153,28 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Aug 18</td>
+                            <td>Sep 27</td>
                             <td>10:00 AM</td>
                             <td>Yoga</td>
-                            <td>John, Jane</td>
+                            <td>John Doe, Jane Smith</td>
                         </tr>
                         <tr>
-                            <td>Aug 18</td>
-                            <td>1:00 PM</td>
+                            <td>Sep 27</td>
+                            <td>2:00 PM</td>
                             <td>HIIT</td>
-                            <td>Mike, Sarah</td>
+                            <td>Mike Johnson, Sarah Lee</td>
                         </tr>
                         <tr>
-                            <td>Aug 19</td>
-                            <td>8:00 AM</td>
-                            <td>Pilates</td>
-                            <td>Anna, Chris</td>
+                            <td>Sep 28</td>
+                            <td>9:00 AM</td>
+                            <td>Personal Training</td>
+                            <td>Anna Chen</td>
                         </tr>
                         <tr>
-                            <td>Aug 19</td>
-                            <td>8:00 AM</td>
-                            <td>Pilates</td>
-                            <td>Anna, Chris</td>
+                            <td>Sep 28</td>
+                            <td>11:00 AM</td>
+                            <td>Strength Training</td>
+                            <td>Chris Wong</td>
                         </tr>
                     </tbody>
                 </table>
@@ -128,18 +196,18 @@
                     <tbody>
                         <tr>
                             <td>John Doe</td>
-                            <td>Gold</td>
-                            <td>Present</td>
+                            <td>Premium</td>
+                            <td><span class="status-active">Present</span></td>
                         </tr>
                         <tr>
                             <td>Jane Smith</td>
-                            <td>Silver</td>
-                            <td>Absent</td>
+                            <td>Standard</td>
+                            <td><span class="status-inactive">Absent</span></td>
                         </tr>
                         <tr>
                             <td>Mike Johnson</td>
-                            <td>Gold</td>
-                            <td>Present</td>
+                            <td>Premium</td>
+                            <td><span class="status-active">Present</span></td>
                         </tr>
                     </tbody>
                 </table>

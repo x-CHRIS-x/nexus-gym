@@ -6,19 +6,19 @@ include '../db.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus | Admin - Add Member</title>
-    <link rel="stylesheet" href="admin.css">
+    <title>Nexus | Employee - Add Member</title>
+    <link rel="stylesheet" href="employee.css">
 </head>
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="logo">NEXUS</div>
         <ul class="nav-menu">
-            <li><a href="admin-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
-            <li><a href="admin-employees.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
-            <li><a href="admin-members.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
-            <li class="active"><a href="admin-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
-            <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
+            <li><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li class="active"><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
+            <li><a href="employee-schedule.php"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
+            <li><a href="employee-fitness-plans.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
         </ul>
         <div class="logout-container">
             <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
@@ -27,16 +27,16 @@ include '../db.php';
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h2>Admin Dashboard</h2>
+            <h2>Employee Dashboard</h2>
             <div class="user-profile">
                 <img src="../images/profile pictures/default-profile.svg" alt="User">
-                <span>Admin</span>
+                <span>Employee</span>
             </div>
         </div>
         <div class="members-container">
             <div class="card" style="max-width: 800px; margin: 0 auto;">
                 <div class="card-header">Add New Member</div>
-                <form method="POST" action="add-member.php" class="member-form" autocomplete="off" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; padding: 20px;">
+                <form method="POST" action="add_member.php" class="member-form" autocomplete="off" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; padding: 20px;">
                     <div class="form-group" style="grid-column: 1">
                         <label for="fullName">Full Name</label>
                         <input type="text" id="fullName" name="fullName" required>
@@ -73,7 +73,7 @@ include '../db.php';
                     </div>
                     <?php
                     if (isset($_GET['error'])) {
-                        echo '<div class="error-message">' . htmlspecialchars($_GET['error']) . '</div>';
+                        echo '<div class="error-message" style="grid-column: 1/3;">' . htmlspecialchars($_GET['error']) . '</div>';
                     }
                     ?>
                     <div class="form-buttons" style="grid-column: 1/3; margin-top: 12px; display: flex; justify-content: center; gap: 16px;">
