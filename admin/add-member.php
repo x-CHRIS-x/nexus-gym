@@ -8,11 +8,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phone = $_POST['phone'];
     $membership_type = $_POST['membershipType'];
     $join_date = $_POST['join_date'];
-    $status = $_POST['status'];
-    $password = $_POST['password']; // new password field
+    $password = $_POST['password'];
+    $subscription_duration = $_POST['subscription_duration'];
 
     // Basic validation
-    if (empty($full_name) || empty($email) || empty($phone) || empty($membership_type) || empty($join_date) || empty($status) || empty($password)) {
+    if (empty($full_name) || empty($email) || empty($phone) || empty($membership_type) || empty($join_date) || empty($password) || empty($subscription_duration)) {
         $error = "All fields are required!";
     } else {
         // Check if email already exists
@@ -28,6 +28,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Calculate membership end date based on subscription duration
             $subscription_duration = $_POST['subscription_duration'];
             $end_date = date('Y-m-d', strtotime($join_date . ' + ' . $subscription_duration . ' months'));
+
+            // Set status as Active for new members
+            $status = 'Active';
 
             // Insert new member
             $sql = "INSERT INTO members (full_name, email, phone, membership_type, join_date, status, password, membership_end_date) 

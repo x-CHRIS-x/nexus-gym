@@ -105,6 +105,14 @@ if ($edit_id) {
                                         $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
                                         $expiryDisplay = $end->format("Y-m-d") . " (" . $daysUntilExpiry . " days left)";
                                     }
+                                    $now = new DateTime();
+                                    $end = new DateTime($row["membership_end_date"]);
+                                    $interval = $now->diff($end);
+                                    $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
+                                    $renewBtnStyle = $daysUntilExpiry > 0 ? 
+                                        "background:#666;cursor:not-allowed;color:#999;" : 
+                                        "background:#22c55e;color:#fff;";
+                                    
                                     echo "<tr>
                                     <td>".$row["full_name"]."</td>
                                     <td>".$row["email"]."</td>
@@ -119,7 +127,10 @@ if ($edit_id) {
                                         <a href='delete_member.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>
                                             <img src='../images/icons/delete-icon.svg' alt='Delete'>
                                         </a>
-                                        <a href='renew-membership.php?id=".$row['id']."' class='btn-action btn-renew' style='background:#22c55e;color:#fff;text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;'>Renew</a>
+                                        " . ($daysUntilExpiry > 0 ? 
+                                            "<span class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}' title='Cannot renew - membership still active'>Renew</span>" :
+                                            "<a href='renew-membership.php?id=".$row['id']."' class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}'>Renew</a>"
+                                        ) . "
                                     </td>
                                     </tr>";
                                 }

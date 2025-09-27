@@ -2,30 +2,12 @@
 include '../db.php';
 ?>
 <!DOCTYPE html>
-<html lang="en"                        <select id="subscription_duration" name="subscription_duration" required>
-                            <option value="1" data-standard="350" data-premium="450">1 Month</option>
-                            <option value="3" data-standard="960" data-premium="1250">3 Months</option>
-                            <option value="12" data-standard="3800" data-premium="5100">1 Year</option>
-                        </select>
-                        <div id="price_display" style="margin-top: 8px; font-weight: bold; color: #dc2626;"></div>
-                        <input type="hidden" name="price" id="selected_price">                       <option value="1">1 Month - ₱450</option>
-                            <option value="3">3 Months - ₱1,250</option>
-                            <option value="12">1 Year - ₱5,100</option><head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | Admin - Add Member</title>
     <link rel="stylesheet" href="admin.css">
-    <style>
-        #price_display {
-            margin-top: 8px;
-            font-weight: bold;
-            color: #dc2626;
-            background: #2a2a2a;
-            padding: 8px 12px;
-            border-radius: 4px;
-            display: inline-block;
-        }
-    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -71,6 +53,10 @@ include '../db.php';
                         <label for="phone">Phone Number</label>
                         <input type="text" id="phone" name="phone" required>
                     </div>
+                    <div class="form-group" style="grid-column: 1/3">
+                        <label for="join_date">Join Date</label>
+                        <input type="date" id="join_date" name="join_date" required>
+                    </div>
                     <div class="form-group" style="grid-column: 1">
                         <label for="membershipType">Membership Type</label>
                         <select id="membershipType" name="membershipType" required>
@@ -81,21 +67,14 @@ include '../db.php';
                     <div class="form-group" style="grid-column: 2">
                         <label for="subscription_duration">Subscription Duration</label>
                         <select id="subscription_duration" name="subscription_duration" required>
-                            <option value="1">1 Month - ₱450</option>
-                            <option value="3">3 Months - ₱3,000</option>
-                            <option value="12">1 Year - ₱12,000</option>
+                            <option value="1">1 Month</option>
+                            <option value="3">3 Months</option>
+                            <option value="12">1 Year</option>
                         </select>
                     </div>
-                    <div class="form-group" style="grid-column: 1">
-                        <label for="join_date">Join Date</label>
-                        <input type="date" id="join_date" name="join_date" required>
-                    </div>
-                    <div class="form-group" style="grid-column: 2">
-                        <label for="status">Status</label>
-                        <select id="status" name="status" required>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
+                    <div class="form-group" style="grid-column: 1/3; text-align: center;">
+                        <label>Total Price:</label>
+                        <span id="totalPrice" style="font-size: 1.2em; font-weight: bold;">₱350</span>
                     </div>
                     <?php
                     if (isset($_GET['error'])) {
@@ -110,5 +89,34 @@ include '../db.php';
             </div>
         </div>
     </div>
+    <script>
+        function updatePrice() {
+            const membershipType = document.getElementById('membershipType').value;
+            const duration = parseInt(document.getElementById('subscription_duration').value);
+            let basePrice = membershipType === 'Standard' ? 350 : 450;
+            let totalPrice = basePrice;
+            
+            if (duration === 3) {
+                totalPrice = membershipType === 'Standard' ? 960 : 1250;
+            } else if (duration === 12) {
+                totalPrice = membershipType === 'Standard' ? 3800 : 5100;
+            }
+            
+            document.getElementById('totalPrice').textContent = '₱' + totalPrice.toLocaleString();
+        }
+
+        // Add event listeners
+        document.getElementById('membershipType').addEventListener('change', updatePrice);
+        document.getElementById('subscription_duration').addEventListener('change', updatePrice);
+        
+        // Initialize price on page load
+        updatePrice();
+        
+        // Clear form button functionality
+        document.querySelector('.btn-clear').addEventListener('click', function() {
+            document.querySelector('.member-form').reset();
+            updatePrice();
+        });
+    </script>
 </body>
 </html>

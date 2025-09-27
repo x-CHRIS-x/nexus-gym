@@ -3,14 +3,14 @@ session_start();
 require_once '../includes/db_connection.php';
 
 // Check if user is logged in and has appropriate role
-if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'employee' && $_SESSION['role'] !== 'admin')) {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'employee') {
     header("Location: ../login.php");
     exit();
 }
 
 // Check if member ID is provided
 if (!isset($_GET['id'])) {
-    header("Location: admin-members.php");
+    header("Location: employee-members.php");
     exit();
 }
 
@@ -24,7 +24,7 @@ $stmt->execute();
 $member = $stmt->get_result()->fetch_assoc();
 
 if (!$member) {
-    header("Location: admin-members.php");
+    header("Location: employee-members.php");
     exit();
 }
 
@@ -66,7 +66,7 @@ $plans = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Renew Membership - Nexus Gym</title>
     <link rel="stylesheet" href="../styles.css">
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="employee.css">
     <style>
         .renewal-form {
             background: #1b1b20ff;
@@ -174,10 +174,11 @@ $plans = [
     <div class="sidebar">
         <div class="logo">NEXUS</div>
         <ul class="nav-menu">
-            <li><a href="admin-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
-            <li class="active"><a href="admin-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
-            <li><a href="admin-employees.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
-            <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
+            <li><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+            <li class="active"><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
+            <li><a href="employee-fitness-plans.php"><img src="../images/icons/fitness-plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
+            <li><a href="employee-schedule.php"><img src="../images/icons/clock-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
         </ul>
         <div class="logout-container">
             <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
@@ -218,27 +219,26 @@ $plans = [
                     <div class="form-group">
                         <label for="duration">Renew Upto</label>
                         <select id="duration" name="duration" onchange="updateAmount()">
-                            <option value="1">1 Month - ₱450</option>
-                            <option value="3">3 Months - ₱1,250</option>
-                            <option value="12">1 Year - ₱5,100</option>
+                            <option value="1">1 Month</option>
+                            <option value="3">3 Months</option>
+                            <option value="12">1 Year</option>
                         </select>
                     </div>
                 </div>
                 <label class="amount-label">Total Amount</label>
                 <div class="total-amount">
-                    <span class="amount" id="totalAmount">₱450.00</span>
+                    <span class="amount" id="totalAmount">₱450</span>
                     <input type="hidden" name="amount" id="amountInput" value="450">
                 </div>
                 <button type="submit" class="submit-btn">Renew</button>
             </form>
         </div>
-
     </div>
 
     <script>
     function updateAmount() {
         const duration = document.getElementById('duration').value;
-        const membershipType = document.getElementById('membershipType').value.toLowerCase();
+        const membershipType = '<?php echo strtolower($member['membership_type']); ?>';
         const prices = {
             'standard': {
                 '1': 350,
@@ -251,10 +251,14 @@ $plans = [
                 '12': 5100
             }
         };
+        
         const amount = prices[membershipType][duration];
-        document.getElementById('totalAmount').textContent = '₱' + amount.toLocaleString('en-US', {minimumFractionDigits: 2});
+        document.getElementById('totalAmount').textContent = '₱' + amount.toLocaleString();
         document.getElementById('amountInput').value = amount;
     }
+    
+    // Initialize price on page load
+    updateAmount();
     </script>
 </body>
 </html>
