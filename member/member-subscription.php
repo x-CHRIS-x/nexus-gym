@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
         <div class="plans-container">
             <div class="plan-box">
                 <div class="plan-title">Monthly Plan</div>
-                <div class="plan-price">₱1200</div>
+                <div class="plan-price">₱450</div>
                 <div class="plan-desc">Stay fit with flexibility. Perfect for short-term goals.</div>
                 <form method="POST" action="">
                     <input type="hidden" name="plan" value="monthly">
@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
             </div>
             <div class="plan-box plan-box-orange">
                 <div class="plan-title">3-Month Plan</div>
-                <div class="plan-price">₱3000</div>
+                <div class="plan-price">₱1,250</div>
                 <div class="plan-desc">Commit to progress. Save more with this package.</div>
                 <form method="POST" action="">
                     <input type="hidden" name="plan" value="3month">
@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
             </div>
             <div class="plan-box plan-box-green">
                 <div class="plan-title">1-Year Plan</div>
-                <div class="plan-price">₱12000</div>
+                <div class="plan-price">₱5,100</div>
                 <div class="plan-desc">Go all in! Best value for your long-term fitness journey.</div>
                 <form method="POST" action="">
                     <input type="hidden" name="plan" value="annual">

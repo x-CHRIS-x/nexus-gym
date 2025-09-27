@@ -7,17 +7,32 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['id'])) {
     if (empty($member_id)) {
         $error = "Member ID is required!";
     } else {
-        // Delete the member
-        $sql = "DELETE FROM members WHERE id = '$member_id'";
+        // Start transaction
+        $conn->begin_transaction();
         
-        if ($conn->query($sql) === TRUE) {
-            if ($conn->affected_rows > 0) {
-                $success = "Member deleted successfully!";
+        try {
+            // First delete related training sessions
+            $sql = "DELETE FROM training_sessions WHERE member_id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $member_id);
+            $stmt->execute();
+            
+            // Then delete the member
+            $sql = "DELETE FROM members WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $member_id);
+            $stmt->execute();
+            
+            if ($stmt->affected_rows > 0) {
+                $success = "Member and related records deleted successfully!";
+                $conn->commit();
             } else {
                 $error = "Member not found!";
+                $conn->rollback();
             }
-        } else {
-            $error = "Error: " . $conn->error;
+        } catch (Exception $e) {
+            $conn->rollback();
+            $error = "Error: " . $e->getMessage();
         }
     }
 } else {

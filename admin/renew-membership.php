@@ -46,9 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $plans = [
-    '1' => ['name' => '1 Month', 'price' => 1200],
-    '3' => ['name' => '3 Months', 'price' => 3000],
-    '12' => ['name' => '1 Year', 'price' => 12000]
+    'standard' => [
+        '1' => ['name' => '1 Month', 'price' => 350],
+        '3' => ['name' => '3 Months', 'price' => 960],
+        '12' => ['name' => '1 Year', 'price' => 3800]
+    ],
+    'premium' => [
+        '1' => ['name' => '1 Month', 'price' => 450],
+        '3' => ['name' => '3 Months', 'price' => 1250],
+        '12' => ['name' => '1 Year', 'price' => 5100]
+    ]
 ];
 ?>
 
@@ -211,16 +218,16 @@ $plans = [
                     <div class="form-group">
                         <label for="duration">Renew Upto</label>
                         <select id="duration" name="duration" onchange="updateAmount()">
-                            <option value="1">1 Month - ₱1,200</option>
-                            <option value="3">3 Months - ₱3,000</option>
-                            <option value="12">1 Year - ₱12,000</option>
+                            <option value="1">1 Month - ₱450</option>
+                            <option value="3">3 Months - ₱1,250</option>
+                            <option value="12">1 Year - ₱5,100</option>
                         </select>
                     </div>
                 </div>
                 <label class="amount-label">Total Amount</label>
                 <div class="total-amount">
-                    <span class="amount" id="totalAmount">₱1,200.00</span>
-                    <input type="hidden" name="amount" id="amountInput" value="1200">
+                    <span class="amount" id="totalAmount">₱450.00</span>
+                    <input type="hidden" name="amount" id="amountInput" value="450">
                 </div>
                 <button type="submit" class="submit-btn">Renew</button>
             </form>
@@ -231,12 +238,20 @@ $plans = [
     <script>
     function updateAmount() {
         const duration = document.getElementById('duration').value;
+        const membershipType = document.getElementById('membershipType').value.toLowerCase();
         const prices = {
-            '1': 1200,
-            '3': 3000,
-            '12': 12000
+            'standard': {
+                '1': 350,
+                '3': 960,
+                '12': 3800
+            },
+            'premium': {
+                '1': 450,
+                '3': 1250,
+                '12': 5100
+            }
         };
-        const amount = prices[duration];
+        const amount = prices[membershipType][duration];
         document.getElementById('totalAmount').textContent = '₱' + amount.toLocaleString('en-US', {minimumFractionDigits: 2});
         document.getElementById('amountInput').value = amount;
     }

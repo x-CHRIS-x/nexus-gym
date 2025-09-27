@@ -25,9 +25,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Hash the password
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
+            // Calculate membership end date based on subscription duration
+            $subscription_duration = $_POST['subscription_duration'];
+            $end_date = date('Y-m-d', strtotime($join_date . ' + ' . $subscription_duration . ' months'));
+
             // Insert new member
-            $sql = "INSERT INTO members (full_name, email, phone, membership_type, join_date, status, password) 
-                    VALUES ('$full_name', '$email', '$phone', '$membership_type', '$join_date', '$status', '$hashedPassword')";
+            $sql = "INSERT INTO members (full_name, email, phone, membership_type, join_date, status, password, membership_end_date) 
+                    VALUES ('$full_name', '$email', '$phone', '$membership_type', '$join_date', '$status', '$hashedPassword', '$end_date')";
 
             if ($conn->query($sql) === TRUE) {
                 $success = "Member added successfully!";

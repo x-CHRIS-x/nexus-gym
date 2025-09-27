@@ -20,7 +20,7 @@ $total_rows = $count_result->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $rows_per_page);
 
 // Get members with pagination
-$sql = "SELECT * FROM members LIMIT $rows_per_page OFFSET $offset";
+$sql = "SELECT id, full_name, email, phone, membership_type, status, membership_end_date FROM members ORDER BY membership_end_date ASC LIMIT $rows_per_page OFFSET $offset";
 $result = $conn->query($sql);
 
 // Inline edit logic
@@ -86,6 +86,7 @@ if ($edit_id) {
                                 <th>Phone</th>
                                 <th>Membership Type</th>
                                 <th>Status</th>
+                                <th>Expiry Date / Days Left</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -94,12 +95,23 @@ if ($edit_id) {
                             if ($result->num_rows > 0) {
                                 while($row = $result->fetch_assoc()) {
                                     $statusClass = ($row["status"] == "Active") ? "status-active" : "status-inactive";
+                                    // Calculate expiry date and days until expiry
+                                    $expiry = isset($row["membership_end_date"]) ? $row["membership_end_date"] : null;
+                                    $expiryDisplay = "-";
+                                    if ($expiry) {
+                                        $now = new DateTime();
+                                        $end = new DateTime($expiry);
+                                        $interval = $now->diff($end);
+                                        $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
+                                        $expiryDisplay = $end->format("Y-m-d") . " (" . $daysUntilExpiry . " days left)";
+                                    }
                                     echo "<tr>
                                     <td>".$row["full_name"]."</td>
                                     <td>".$row["email"]."</td>
                                     <td>".$row["phone"]."</td>
                                     <td>".$row["membership_type"]."</td>
                                     <td><span class='".$statusClass."'>".$row["status"]."</span></td>
+                                    <td>".$expiryDisplay."</td>
                                     <td>
                                         <a href='admin-edit-member.php?id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
                                             <img src='../images/icons/edit-icon.svg' alt='Edit'>
@@ -107,7 +119,7 @@ if ($edit_id) {
                                         <a href='delete_member.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>
                                             <img src='../images/icons/delete-icon.svg' alt='Delete'>
                                         </a>
-                                        <a href='renew-membership.php?id=".$row['id']."' class='btn-action btn-renew' style='background:#22c55e;color:#fff;text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:38px;'>Renew</a>
+                                        <a href='renew-membership.php?id=".$row['id']."' class='btn-action btn-renew' style='background:#22c55e;color:#fff;text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;'>Renew</a>
                                     </td>
                                     </tr>";
                                 }
