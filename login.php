@@ -7,6 +7,10 @@
   <title>NEXUS GYM – Login</title>
   <link rel="stylesheet" href="styles.css"/>
   <style>
+    .btn w-full {
+      margin-bottom: 40px;
+    }
+
     .error-message {
       display: none;
       background-color: #ffe5e5;
@@ -95,7 +99,7 @@
               <label for="password">Password</label>
               <input id="password" name="password" type="password" class="input" placeholder="••••••••" required/>
             </div>
-            <button type="submit" class="btn w-full">Sign In</button>
+            <button type="submit" class="btn w-full" style="margin-bottom: 24px; margin-top: 24px;">Sign In</button>
           </form>
           
           <!-- Employee Login -->
@@ -109,7 +113,7 @@
               <label for="password-employee">Password</label>
               <input id="password-employee" name="password" type="password" class="input" placeholder="••••••••" required/>
             </div>
-            <button type="submit" class="btn w-full">Sign In</button>
+            <button type="submit" class="btn w-full" style="margin-bottom: 24px; margin-top: 24px;">Sign In</button>
           </form>
           
           <!-- Admin Login -->
@@ -123,11 +127,8 @@
               <label for="password-admin">Password</label>
               <input id="password-admin" name="password" type="password" class="input" placeholder="••••••••" required/>
             </div>
-            <button type="submit" class="btn w-full">Sign In</button>
+            <button type="submit" class="btn w-full" style="margin-bottom: 24px; margin-top: 24px;">Sign In</button>
           </form>
-        </div>
-        <div class="forgot-password">
-          <a href="#">Forgot password?</a>
         </div>
       </div>
     </div>
