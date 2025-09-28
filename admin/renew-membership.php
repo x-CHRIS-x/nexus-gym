@@ -32,15 +32,16 @@ if (!$member) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $duration = $_POST['duration'];
     $amount = $_POST['amount'];
+    $membershipType = $_POST['membershipType'];
     
     // Calculate new membership end date from today
     $today = new DateTime();
     $new_end_date = $today->modify("+{$duration} months")->format('Y-m-d');
     
-    // Update member status and end date
-    $updateQuery = "UPDATE members SET status = 'Active', membership_end_date = ? WHERE id = ?";
+    // Update member status, end date and membership type
+    $updateQuery = "UPDATE members SET status = 'Active', membership_end_date = ?, membership_type = ? WHERE id = ?";
     $stmt = $conn->prepare($updateQuery);
-    $stmt->bind_param("si", $new_end_date, $memberId);
+    $stmt->bind_param("ssi", $new_end_date, $membershipType, $memberId);
     
     if ($stmt->execute()) {
         $successMessage = "Membership renewed successfully! New expiry date: " . date('Y-m-d', strtotime($new_end_date));
@@ -216,27 +217,30 @@ $plans = [
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Membership Type</label>
-                        <input type="text" value="<?php echo htmlspecialchars($member['membership_type']); ?>" readonly>
+                        <label for="membershipType">Membership Type</label>
+                        <select id="membershipType" name="membershipType" onchange="updateAmount()">
+                            <option value="Standard" <?php echo $member['membership_type'] == 'Standard' ? 'selected' : ''; ?>>Standard</option>
+                            <option value="Premium" <?php echo $member['membership_type'] == 'Premium' ? 'selected' : ''; ?>>Premium</option>
+                        </select>
+                        <small style="color: #666; display: block; margin-top: 4px;">(Current: <?php echo htmlspecialchars($member['membership_type']); ?>)</small>
                     </div>
                     <div class="form-group">
                         <label for="duration">Renew Upto</label>
                         <select id="duration" name="duration" onchange="updateAmount()">
-                            <option value="1">1 Month - ₱450</option>
-                            <option value="3">3 Months - ₱1,250</option>
-                            <option value="12">1 Year - ₱5,100</option>
+                            <option value="1">1 Month</option>
+                            <option value="3">3 Months</option>
+                            <option value="12">1 Year</option>
                         </select>
                     </div>
                 </div>
                 <label class="amount-label">Total Amount</label>
                 <div class="total-amount">
-                    <span class="amount" id="totalAmount">₱450.00</span>
-                    <input type="hidden" name="amount" id="amountInput" value="450">
+                    <span class="amount" id="totalAmount">₱350</span>
+                    <input type="hidden" name="amount" id="amountInput" value="350">
                 </div>
                 <button type="submit" class="submit-btn">Renew</button>
             </form>
         </div>
-
     </div>
 
     <script>
@@ -259,6 +263,9 @@ $plans = [
         document.getElementById('totalAmount').textContent = '₱' + amount.toLocaleString('en-US', {minimumFractionDigits: 2});
         document.getElementById('amountInput').value = amount;
     }
+    
+    // Initialize price on page load
+    updateAmount();
     </script>
 </body>
 </html>
