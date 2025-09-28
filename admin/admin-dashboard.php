@@ -207,8 +207,61 @@ $result = $conn->query($sql);
             <div class="card card-flex-2 card-min-width-260">
                 <div class="employee-table-title">Notifications / Alerts</div>
                 <ul class="list-no-style list-no-padding list-no-margin">
-                    <li class="list-margin-bottom-8">5 memberships expiring this week</li>
-                    <li class="list-margin-bottom-8">2 overdue payments</li>
+                    <?php
+                    // Get memberships expiring in the next 7 days
+                    $next_week = date('Y-m-d', strtotime('+7 days'));
+                    $today = date('Y-m-d');
+                    
+                    $expiring_sql = "SELECT COUNT(*) as expiring_count 
+                                   FROM members 
+                                   WHERE membership_end_date BETWEEN '$today' AND '$next_week'
+                                   AND status = 'Active'";
+                    $expiring_result = $conn->query($expiring_sql);
+                    $expiring_row = $expiring_result->fetch_assoc();
+                    
+                    if ($expiring_row['expiring_count'] > 0) {
+                        echo "<li class='list-margin-bottom-8'><span style='color: #fbbf24;'>⚠</span> " . 
+                             $expiring_row['expiring_count'] . " membership" . 
+                             ($expiring_row['expiring_count'] > 1 ? "s" : "") . 
+                             " expiring this week</li>";
+                    }
+
+                    // Get count of expired memberships
+                    $expired_sql = "SELECT COUNT(*) as expired_count 
+                                  FROM members 
+                                  WHERE membership_end_date < CURRENT_DATE 
+                                  AND status = 'Active'";
+                    $expired_result = $conn->query($expired_sql);
+                    $expired_row = $expired_result->fetch_assoc();
+                    
+                    if ($expired_row['expired_count'] > 0) {
+                        echo "<li class='list-margin-bottom-8'><span style='color: #ef4444;'>⚠</span> " . 
+                             $expired_row['expired_count'] . " expired membership" . 
+                             ($expired_row['expired_count'] > 1 ? "s" : "") . 
+                             " need attention</li>";
+                    }
+
+                    // Get pending payments count
+                    $pending_sql = "SELECT COUNT(*) as pending_count 
+                                  FROM member_subscriptions 
+                                  WHERE payment_status = 'pending'";
+                    $pending_result = $conn->query($pending_sql);
+                    $pending_row = $pending_result->fetch_assoc();
+                    
+                    if ($pending_row['pending_count'] > 0) {
+                        echo "<li class='list-margin-bottom-8'><span style='color: #fbbf24;'>💰</span> " . 
+                             $pending_row['pending_count'] . " pending payment" . 
+                             ($pending_row['pending_count'] > 1 ? "s" : "") . 
+                             " to process</li>";
+                    }
+
+                    // If no notifications
+                    if ($expiring_row['expiring_count'] == 0 && 
+                        $expired_row['expired_count'] == 0 && 
+                        $pending_row['pending_count'] == 0) {
+                        echo "<li class='list-margin-bottom-8'><span style='color: #22c55e;'>✓</span> No urgent notifications</li>";
+                    }
+                    ?>
                 </ul>
             </div>
         </div>
