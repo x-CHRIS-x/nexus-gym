@@ -138,77 +138,115 @@ $members_result = $stmt->get_result();
         </div>
 
         <!-- Large Card with Employee Table -->
-    <!-- Upcoming Schedule Section -->
+    <!-- Available Coaches Section -->
     <div class="card card-margin-bottom">
-            <div class="employee-table-title">Upcoming Schedule</div>
+            <div class="employee-table-title">Available Coaches Today</div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Class/Workout</th>
-                            <th>Assigned Members</th>
+                            <th>Coach Name</th>
+                            <th>Position</th>
+                            <th>Available Times</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Sep 27</td>
-                            <td>10:00 AM</td>
-                            <td>Yoga</td>
-                            <td>John Doe, Jane Smith</td>
-                        </tr>
-                        <tr>
-                            <td>Sep 27</td>
-                            <td>2:00 PM</td>
-                            <td>HIIT</td>
-                            <td>Mike Johnson, Sarah Lee</td>
-                        </tr>
-                        <tr>
-                            <td>Sep 28</td>
-                            <td>9:00 AM</td>
-                            <td>Personal Training</td>
-                            <td>Anna Chen</td>
-                        </tr>
-                        <tr>
-                            <td>Sep 28</td>
-                            <td>11:00 AM</td>
-                            <td>Strength Training</td>
-                            <td>Chris Wong</td>
-                        </tr>
+                        <?php
+                        // Get coaches available today
+                        $today_name = date('l'); // Gets day name (Monday, Tuesday, etc.)
+                        $available_coaches_query = "SELECT 
+                            e.full_name,
+                            e.position,
+                            ca.available_time,
+                            e.status
+                            FROM employees e
+                            JOIN coach_availability ca ON e.id = ca.employee_id
+                            WHERE e.status = 'Active'
+                            AND ca.available_day = ?";
+                        
+                        $stmt = $conn->prepare($available_coaches_query);
+                        $search_day = "%$today_name%";
+                        $stmt->bind_param("s", $search_day);
+                        $stmt->execute();
+                        $coaches_result = $stmt->get_result();
+
+                        if ($coaches_result->num_rows > 0) {
+                            while ($row = $coaches_result->fetch_assoc()) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['position']) . "</td>";
+                                // Format available times
+                                $times = explode(',', $row['available_time']);
+                                $formatted_times = array_map(function($time) {
+                                    return date('g:i A', strtotime($time));
+                                }, $times);
+                                echo "<td>" . implode(', ', $formatted_times) . "</td>";
+                                echo "<td><span class='status-active'>Available</span></td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' style='text-align: center;'>No coaches available today</td></tr>";
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Assigned Members Section -->
+        <!-- Duty Roster Section -->
         <div class="card">
-            <div class="employee-table-title">Assigned Members</div>
+            <div class="employee-table-title">Duty Roster</div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Member Name</th>
-                            <th>Active Plan</th>
-                            <th>Attendance</th>
+                            <th>Day</th>
+                            <th>Shift Time</th>
+                            <th>Job Role</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>John Doe</td>
-                            <td>Premium</td>
-                            <td><span class="status-active">Present</span></td>
-                        </tr>
-                        <tr>
-                            <td>Jane Smith</td>
-                            <td>Standard</td>
-                            <td><span class="status-inactive">Absent</span></td>
-                        </tr>
-                        <tr>
-                            <td>Mike Johnson</td>
-                            <td>Premium</td>
-                            <td><span class="status-active">Present</span></td>
-                        </tr>
+                        <?php
+                        // Get duty roster for the current week
+                        $week_start = date('Y-m-d', strtotime('monday this week'));
+                        $week_end = date('Y-m-d', strtotime('sunday this week'));
+                        
+                        $duty_query = "SELECT 
+                            date,
+                            shift_time,
+                            job_role,
+                            CASE 
+                                WHEN date = CURRENT_DATE THEN 'Today'
+                                WHEN date < CURRENT_DATE THEN 'Completed'
+                                ELSE 'Upcoming'
+                            END as status
+                            FROM schedules
+                            WHERE employee_id = ?
+                            AND date BETWEEN ? AND ?
+                            ORDER BY date ASC, shift_time ASC";
+                        
+                        $stmt = $conn->prepare($duty_query);
+                        $stmt->bind_param("iss", $employee_id, $week_start, $week_end);
+                        $stmt->execute();
+                        $duty_result = $stmt->get_result();
+
+                        if ($duty_result->num_rows > 0) {
+                            while ($row = $duty_result->fetch_assoc()) {
+                                $status_class = $row['status'] === 'Today' ? 'status-active' : 
+                                               ($row['status'] === 'Completed' ? 'status-inactive' : '');
+                                echo "<tr>";
+                                echo "<td>" . date('l', strtotime($row['date'])) . "</td>";
+                                echo "<td>" . date('g:i A', strtotime($row['shift_time'])) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['job_role']) . "</td>";
+                                echo "<td><span class='" . $status_class . "'>" . $row['status'] . "</span></td>";
+                                echo "</tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' style='text-align: center;'>No duties scheduled for this week</td></tr>";
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>
