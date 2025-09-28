@@ -17,13 +17,14 @@ include '../db.php';
             <li><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
             <li><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
             <li class="active"><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
-            <li><a href="employee-fitness-plans.php"><img src="../images/icons/fitness-plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
-            <li><a href="employee-schedule.php"><img src="../images/icons/clock-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
+            <li><a href="employee-schedule.php"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
+            <li><a href="employee-fitness-plans.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
         </ul>
         <div class="logout-container">
             <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
+
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">

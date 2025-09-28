@@ -74,7 +74,7 @@ if ($edit_id) {
                     <select class="filter-dropdown">
                         <option value="">All Status</option>
                         <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
+                        <option value="Expired">Expired</option>
                     </select>
                 </div>
                 <div class="table-responsive">
@@ -94,7 +94,11 @@ if ($edit_id) {
                             <?php
                             if ($result->num_rows > 0) {
                                 while($row = $result->fetch_assoc()) {
-                                    $statusClass = ($row["status"] == "Active") ? "status-active" : "status-inactive";
+                                    $now = new DateTime();
+                                    $end = new DateTime($row["membership_end_date"]);
+                                    $interval = $now->diff($end);
+                                    $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
+                                    
                                     // Calculate expiry date and days until expiry
                                     $expiry = isset($row["membership_end_date"]) ? $row["membership_end_date"] : null;
                                     $expiryDisplay = "-";
@@ -105,10 +109,20 @@ if ($edit_id) {
                                         $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
                                         $expiryDisplay = $end->format("Y-m-d") . " (" . $daysUntilExpiry . " days left)";
                                     }
-                                    $now = new DateTime();
-                                    $end = new DateTime($row["membership_end_date"]);
-                                    $interval = $now->diff($end);
-                                    $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
+
+                                    // Update status based on expiry date
+                                    $status = $daysUntilExpiry > 0 ? "Active" : "Expired";
+                                    $statusClass = $status == "Active" ? "status-active" : "status-inactive";
+                                    
+                                    // Update status in database if it has changed
+                                    if ($row["status"] != $status) {
+                                        $updateSql = "UPDATE members SET status = ? WHERE id = ?";
+                                        $stmt = $conn->prepare($updateSql);
+                                        $stmt->bind_param("si", $status, $row["id"]);
+                                        $stmt->execute();
+                                        $stmt->close();
+                                        $row["status"] = $status;
+                                    }
                                     $renewBtnStyle = $daysUntilExpiry > 0 ? 
                                         "background:#666;cursor:not-allowed;color:#999;" : 
                                         "background:#22c55e;color:#fff;";

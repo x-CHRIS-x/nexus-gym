@@ -33,13 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $duration = $_POST['duration'];
     $amount = $_POST['amount'];
     
-    // Update member status to Active (uppercase for consistency)
-    $updateQuery = "UPDATE members SET status = 'Active' WHERE id = ?";
+    // Calculate new membership end date from today
+    $today = new DateTime();
+    $new_end_date = $today->modify("+{$duration} months")->format('Y-m-d');
+    
+    // Update member status and end date
+    $updateQuery = "UPDATE members SET status = 'Active', membership_end_date = ? WHERE id = ?";
     $stmt = $conn->prepare($updateQuery);
-    $stmt->bind_param("i", $memberId);
+    $stmt->bind_param("si", $new_end_date, $memberId);
     
     if ($stmt->execute()) {
-        $successMessage = "Membership renewed successfully!";
+        $successMessage = "Membership renewed successfully! New expiry date: " . date('Y-m-d', strtotime($new_end_date));
     } else {
         $errorMessage = "Error renewing membership. Please try again.";
     }
