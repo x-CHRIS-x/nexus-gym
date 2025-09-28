@@ -141,7 +141,7 @@ if ($member_id) {
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-classes-icon.svg" class="summary-icon" alt="Classes Attended">
-                <div class="summary-number">15</div>
+                <div class="summary-number">1</div>
                 <div class="summary-label">Classes Attended</div>
             </div>
             <div class="dashboard-card">
@@ -157,81 +157,84 @@ if ($member_id) {
         </div>
 
         <!-- Your Progress -->
-        <div class="card card-margin-bottom">
-            <div class="employee-table-title">Your Progress</div>
-            <div class="progress-columns">
-                <!-- Column 1 -->
-                <div class="progress-box">
-                    <h3>Chest / Shoulders</h3>
-                    <div class="progress-item"><span class="progress-label">Bench Press</span> <span class="progress-value"><?= $progress['bench_press'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Incline Press</span> <span class="progress-value"><?= $progress['incline_press'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Decline Press</span> <span class="progress-value"><?= $progress['decline_press'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Chest Fly</span> <span class="progress-value"><?= $progress['chest_fly'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Overhead Press</span> <span class="progress-value"><?= $progress['overhead_press'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Lateral Raises</span> <span class="progress-value"><?= $progress['lateral_raises'] ?? '-' ?></span></div>
-                </div>
-                <!-- Column 2 -->
-                <div class="progress-box">
-                    <h3>Back / Biceps</h3>
-                    <div class="progress-item"><span class="progress-label">Deadlift</span> <span class="progress-value"><?= $progress['deadlift'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Lat Pulldown</span> <span class="progress-value"><?= $progress['lat_pulldown'] ?? '-' ?></span></div>
-                </div>
-                <!-- Column 3 -->
-                <div class="progress-box">
-                    <h3>Legs</h3>
-                    <div class="progress-item"><span class="progress-label">Squat</span> <span class="progress-value"><?= $progress['squat'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Leg Press</span> <span class="progress-value"><?= $progress['leg_press'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">Romanian Deadlift</span> <span class="progress-value"><?= $progress['romanian_deadlift'] ?? '-' ?></span></div>
-                    <div class="progress-item"><span class="progress-label">RDL</span> <span class="progress-value"><?= $progress['rdl'] ?? '-' ?></span></div>
-                </div>
-            </div>
+<div class="card card-margin-bottom">
+    <div class="employee-table-title">Your Progress</div>
+    <div class="progress-columns">
+        <!-- Column 1 -->
+        <div class="progress-box">
+            <h3>Chest / Shoulders</h3>
+            <div class="progress-item"><span class="progress-label">Bench Press</span> <span class="progress-value"><?= $progress['bench_press'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Incline Press</span> <span class="progress-value"><?= $progress['incline_press'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Decline Press</span> <span class="progress-value"><?= $progress['decline_press'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Chest Fly</span> <span class="progress-value"><?= $progress['chest_fly'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Overhead Press</span> <span class="progress-value"><?= $progress['overhead_press'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Lateral Raises</span> <span class="progress-value"><?= $progress['lateral_raises'] ?? '-' ?></span></div>
         </div>
+        <!-- Column 2 -->
+        <div class="progress-box">
+            <h3>Back / Biceps</h3>
+            <div class="progress-item"><span class="progress-label">Deadlift</span> <span class="progress-value"><?= $progress['deadlift'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Lat Pulldown</span> <span class="progress-value"><?= $progress['lat_pulldown'] ?? '-' ?></span></div>
+        </div>
+        <!-- Column 3 -->
+        <div class="progress-box">
+            <h3>Legs</h3>
+            <div class="progress-item"><span class="progress-label">Squat</span> <span class="progress-value"><?= $progress['squat'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Leg Press</span> <span class="progress-value"><?= $progress['leg_press'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">Romanian Deadlift</span> <span class="progress-value"><?= $progress['romanian_deadlift'] ?? '-' ?></span></div>
+            <div class="progress-item"><span class="progress-label">RDL</span> <span class="progress-value"><?= $progress['rdl'] ?? '-' ?></span></div>
+        </div>
+        <!-- Column 4 (NEW) -->
+        <div class="progress-box">
+            <h3>Weight Tracking</h3>
+            <div class="progress-item"><span class="progress-label">Before</span> <span class="progress-value"><?= $progress['weight_before'] ?? '-' ?> kg</span></div>
+            <div class="progress-item"><span class="progress-label">Now</span> <span class="progress-value"><?= $progress['weight_now'] ?? '-' ?> kg</span></div>
+        </div>
+    </div>
+</div>
 
-        <!-- Upcoming Classes -->
+
+                               <!-- Available Coaches -->
         <div class="card card-margin-bottom">
-            <div class="employee-table-title">Upcoming Classes</div>
+            <div class="employee-table-title">Available Coaches</div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Class</th>
-                            <th>Date/Time</th>
-                            <th>Trainer</th>
+                            <th>Coach Name</th>
+                            <th>Specialization</th>
+                            <th>Status</th>
+                            <th>Availability</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php 
-                        if (isset($upcoming_classes) && $class_count > 0) {
-                            while ($class = $upcoming_classes->fetch_assoc()) {
-                                $date = date('M d', strtotime($class['date']));
-                                $time = $class['shift_time'];
+                        $coach_query = "
+                            SELECT e.id, e.full_name, e.position, e.status,
+                                   (SELECT COUNT(*) FROM coach_availability ca WHERE ca.employee_id = e.id) AS availability_count
+                            FROM employees e
+                            WHERE e.status = 'Active' AND e.full_name LIKE '%Coach%'
+                            ORDER BY e.full_name ASC
+                        ";
+                        $coach_result = $conn->query($coach_query);
+
+                        if ($coach_result && $coach_result->num_rows > 0) {
+                            while ($coach = $coach_result->fetch_assoc()) {
+                                $availability_color = $coach['availability_count'] > 0 ? 'lime' : 'red';
+                                $availability_text = $coach['availability_count'] > 0 ? 'Available' : 'Not Available';
+
                                 echo "<tr>
-                                    <td>" . htmlspecialchars($class['job_role']) . "</td>
-                                    <td>{$date}, {$time}</td>
-                                    <td>" . htmlspecialchars($class['trainer_name']) . "</td>
+                                    <td>" . htmlspecialchars($coach['full_name']) . "</td>
+                                    <td>" . htmlspecialchars($coach['position']) . "</td>
+                                    <td>" . htmlspecialchars($coach['status']) . "</td>
+                                    <td style='color: {$availability_color}; font-weight:bold;'>{$availability_text}</td>
                                 </tr>";
                             }
                         } else {
-                            if ($hired_count > 0) {
-                                echo "<tr><td colspan='3' style='text-align: center;'>You have {$hired_count} hired trainer(s) but no upcoming classes scheduled yet.</td></tr>";
-                            } else {
-                                echo "<tr><td colspan='3' style='text-align: center;'>No trainers hired yet. Visit the Classes page to hire a trainer.</td></tr>";
-                            }
+                            echo "<tr><td colspan='4' style='text-align:center;'>No coaches available at the moment.</td></tr>";
                         }
                         ?>
                     </tbody>
                 </table>
             </div>
         </div>
-
-        <!-- Subscription Reminder -->
-        <div class="card">
-            <div class="employee-table-title">Subscription Reminder</div>
-            <div class="subscription-reminder-row">
-                <span>Expiry date: <strong>Aug 31, 2025</strong></span>
-                <button class="action-btn edit-btn">Renew</button>
-            </div>
-        </div>
-    </div>
-</body>
-</html>

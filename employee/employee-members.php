@@ -9,18 +9,52 @@ $offset = ($current_page - 1) * $rows_per_page;
 // Get total count of members
 $count_sql = "SELECT COUNT(*) as total FROM members";
 $count_result = $conn->query($count_sql);
-$total_rows = $count_result->fetch_assoc()['total'];
-$total_pages = ceil($total_rows / $rows_per_page);
+
+if (!$count_result) {
+    die("SQL Error in count query: " . $conn->error);
+}
+
+$total_rows = (int)$count_result->fetch_assoc()['total'];
+$total_pages = ($rows_per_page > 0) ? ceil($total_rows / $rows_per_page) : 1;
+
+// Check if membership_end_date column exists
+$check_col_sql = "
+    SELECT COUNT(*) as cnt
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'members'
+      AND COLUMN_NAME = 'membership_end_date'
+";
+$col_res = $conn->query($check_col_sql);
+if (!$col_res) {
+    die("SQL Error checking columns: " . $conn->error);
+}
+$has_end_date = (bool)$col_res->fetch_assoc()['cnt'];
+
+// Build select list dynamically so we don't fail if column is missing
+$select_list = "id, full_name, email, phone, membership_type, status";
+if ($has_end_date) {
+    $select_list .= ", membership_end_date";
+    $order_by = "membership_end_date ASC";
+} else {
+    // fallback: return a NULL column so the rest of the code can read it safely
+    $select_list .= ", NULL AS membership_end_date";
+    $order_by = "id ASC";
+}
 
 // Get members with pagination
-$sql = "SELECT id, full_name, email, phone, membership_type, status, membership_end_date FROM members ORDER BY membership_end_date ASC LIMIT $rows_per_page OFFSET $offset";
+$sql = "SELECT $select_list FROM members ORDER BY $order_by LIMIT $rows_per_page OFFSET $offset";
 $result = $conn->query($sql);
+
+if (!$result) {
+    die("SQL Error in members query: " . $conn->error);
+}
 
 // Inline edit logic
 $edit_id = isset($_GET['edit_id']) ? intval($_GET['edit_id']) : null;
 $edit_row = null;
 if ($edit_id) {
-    $edit_result = $conn->query("SELECT * FROM members WHERE id=$edit_id LIMIT 1");
+    $edit_result = $conn->query("SELECT * FROM members WHERE id=" . $edit_id . " LIMIT 1");
     $edit_row = $edit_result ? $edit_result->fetch_assoc() : null;
 }
 ?>
@@ -67,7 +101,7 @@ if ($edit_id) {
                     <select class="filter-dropdown">
                         <option value="">All Status</option>
                         <option value="Active">Active</option>
-                        <option value="Expired">Expired</option>
+                        <option value="Inactive">Inactive</option>
                     </select>
                 </div>
                 <div class="table-responsive">
@@ -87,68 +121,62 @@ if ($edit_id) {
                         <?php
                             if ($result->num_rows > 0) {
                                 while($row = $result->fetch_assoc()) {
-                                    $now = new DateTime();
-                                    $end = new DateTime($row["membership_end_date"]);
-                                    $interval = $now->diff($end);
-                                    $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
-                                    
-                                    // Update status based on expiry date
-                                    $status = $daysUntilExpiry > 0 ? "Active" : "Expired";
-                                    $statusClass = $status == "Active" ? "status-active" : "status-inactive";
-                                    
-                                    // Update status in database if it has changed
-                                    if ($row["status"] != $status) {
-                                        $updateSql = "UPDATE members SET status = ? WHERE id = ?";
-                                        $stmt = $conn->prepare($updateSql);
-                                        $stmt->bind_param("si", $status, $row["id"]);
-                                        $stmt->execute();
-                                        $stmt->close();
-                                        $row["status"] = $status;
-                                    }
-                                    // Calculate expiry date and days until expiry
+                                    $statusClass = ($row["status"] == "Active") ? "status-active" : "status-inactive";
+
+                                    // Prepare expiry info safely:
                                     $expiry = isset($row["membership_end_date"]) ? $row["membership_end_date"] : null;
                                     $expiryDisplay = "-";
-                                    if ($expiry) {
-                                        $now = new DateTime();
-                                        $end = new DateTime($expiry);
-                                        $interval = $now->diff($end);
-                                        $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
-                                        $expiryDisplay = $end->format("Y-m-d") . " (" . $daysUntilExpiry . " days left)";
+                                    $daysUntilExpiry = 0;
+
+                                    // treat NULL or empty or '0000-00-00' as no expiry
+                                    if (!empty($expiry) && $expiry !== '0000-00-00') {
+                                        try {
+                                            $now = new DateTime();
+                                            $end = new DateTime($expiry);
+                                            $interval = $now->diff($end);
+                                            $daysUntilExpiry = $interval->invert ? 0 : $interval->days;
+                                            $expiryDisplay = $end->format("Y-m-d") . " (" . $daysUntilExpiry . " days left)";
+                                        } catch (Exception $e) {
+                                            // if invalid date format, fall back to '-'
+                                            $expiryDisplay = "-";
+                                            $daysUntilExpiry = 0;
+                                        }
                                     }
-                                    $renewBtnStyle = $daysUntilExpiry > 0 ? 
-                                        "background:#666;cursor:not-allowed;color:#999;" : 
+
+                                    $renewBtnStyle = $daysUntilExpiry > 0 ?
+                                        "background:#666;cursor:not-allowed;color:#999;" :
                                         "background:#22c55e;color:#fff;";
-                                    
+
                                     echo "<tr>
-                                    <td>".$row["full_name"]."</td>
-                                    <td>".$row["email"]."</td>
-                                    <td>".$row["phone"]."</td>
-                                    <td>".$row["membership_type"]."</td>
-                                    <td><span class='".$statusClass."'>".$row["status"]."</span></td>
+                                    <td>".htmlspecialchars($row["full_name"])."</td>
+                                    <td>".htmlspecialchars($row["email"])."</td>
+                                    <td>".htmlspecialchars($row["phone"])."</td>
+                                    <td>".htmlspecialchars($row["membership_type"])."</td>
+                                    <td><span class='".$statusClass."'>".htmlspecialchars($row["status"])."</span></td>
                                     <td>".$expiryDisplay."</td>
                                     <td>
-                                        <a href='employee-edit-member.php?id=".$row['id']."' class='btn-action btn-edit' title='Edit'>
+                                        <a href='employee-edit-member.php?id=".urlencode($row['id'])."' class='btn-action btn-edit' title='Edit'>
                                             <img src='../images/icons/edit-icon.svg' alt='Edit'>
                                         </a>
-                                        <a href='delete_member.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>
+                                        <a href='delete_member.php?id=".urlencode($row['id'])."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>
                                             <img src='../images/icons/delete-icon.svg' alt='Delete'>
-                                        </a>
-                                        " . ($daysUntilExpiry > 0 ? 
+                                        </a>"
+                                        . ($daysUntilExpiry > 0 ?
                                             "<span class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}' title='Cannot renew - membership still active'>Renew</span>" :
-                                            "<a href='renew-membership.php?id=".$row['id']."' class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}'>Renew</a>"
-                                        ) . "
-                                    </td>
+                                            "<a href='renew-membership.php?id=".urlencode($row['id'])."' class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}'>Renew</a>"
+                                        ) .
+                                    "</td>
                                     </tr>";
-                                }   
+                                }
                             } else {
                                 echo "<tr><td colspan='7'>No members found</td></tr>";
                             }
-                            ?>
+                        ?>
                         </tbody>
                     </table>
                 </div>
                 <div class="pagination-info">
-                    Showing <?php echo $offset + 1; ?> to <?php echo min($offset + $rows_per_page, $total_rows); ?> of <?php echo $total_rows; ?> members
+                    Showing <?php echo ($total_rows > 0) ? ($offset + 1) : 0; ?> to <?php echo ($total_rows > 0) ? min($offset + $rows_per_page, $total_rows) : 0; ?> of <?php echo $total_rows; ?> members
                 </div>
                 <div class="pagination">
                     <?php if ($total_pages > 1): ?>
@@ -161,7 +189,7 @@ if ($edit_id) {
                         <?php
                         $start_page = max(1, $current_page - 2);
                         $end_page = min($total_pages, $current_page + 2);
-                        
+
                         for ($i = $start_page; $i <= $end_page; $i++):
                         ?>
                             <a href="?page=<?php echo $i; ?>" class="page-btn <?php echo ($i == $current_page) ? 'active' : ''; ?>">

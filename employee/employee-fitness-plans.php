@@ -155,23 +155,6 @@ $stmtNotif->close();
   </div>
 
   <!-- Notifications -->
-  <div class="card">
-    <div class="employee-table-title">Notifications</div>
-    <ul id="notification-list">
-      <?php if ($notifResult->num_rows > 0): ?>
-        <?php while($notif = $notifResult->fetch_assoc()): ?>
-          <li>
-            <b><?= htmlspecialchars($notif['member_name']) ?></b> - 
-            <?= htmlspecialchars($notif['message']) ?> 
-            <small>(<?= $notif['created_at'] ?>)</small>
-          </li>
-        <?php endwhile; ?>
-      <?php else: ?>
-        <li>No notifications.</li>
-      <?php endif; ?>
-    </ul> 
-  </div>
-</div>
 
 <script>
 // Toggle availability via AJAX

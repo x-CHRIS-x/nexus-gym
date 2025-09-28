@@ -5,7 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | Member - Profile</title>
     <link rel="stylesheet" href="member.css">
-
+    <style>
+        /* Toast Notification Styling */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2ecc71;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease, top 0.4s ease;
+            z-index: 9999;
+        }
+        .toast.show {
+            opacity: 1;
+            top: 40px;
+            pointer-events: auto;
+        }
+    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -35,7 +59,7 @@
         </div>
 
         <div class="profile-container">
-            <form class="profile-form-grid">
+            <form class="profile-form-grid" id="profileForm">
                 <div class="profile-picture-section profile-picture-top">
                     <img src="../images/profile pictures/default-profile.svg" alt="Profile Picture" id="profile-picture-preview">
                     <input type="file" id="profile-picture" name="profile-picture" accept="image/*">
@@ -82,5 +106,25 @@
             </form>
         </div>
     </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">✅ Changes saved! Please visit the front desk if you need a key card or locker key.</div>
+
+    <script>
+        const form = document.getElementById("profileForm");
+        const toast = document.getElementById("toast");
+
+        form.addEventListener("submit", function(e) {
+            e.preventDefault(); // prevent normal submit
+            showToast();
+        });
+
+        function showToast() {
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 4000); // hide after 4s
+        }
+    </script>
 </body>
-</html> 
+</html>

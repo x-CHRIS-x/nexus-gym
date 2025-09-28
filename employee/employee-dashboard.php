@@ -4,6 +4,7 @@ session_start();
 
 // Get employee ID from session (you'll need to set this during login)
 $employee_id = 1; // Temporarily hardcoded, should come from $_SESSION['employee_id']
+$employee_name = $_SESSION['employee_name'] ?? "Employee";
 
 // Fetch counts for summary cards
 $today = date('Y-m-d');
@@ -16,46 +17,22 @@ $stmt->bind_param("is", $employee_id, $today);
 $stmt->execute();
 $classes_today = $stmt->get_result()->fetch_assoc()['class_count'];
 
-// Count assigned members (from notifications table where message = 'hired')
-$members_query = "SELECT COUNT(DISTINCT member_id) as member_count FROM notifications 
-                 WHERE employee_id = ? AND message = 'hired'";
+// Count assigned members (from schedules table)
+$members_query = "SELECT COUNT(DISTINCT employee_id) as member_count 
+                 FROM schedules WHERE employee_id = ?";
 $stmt = $conn->prepare($members_query);
 $stmt->bind_param("i", $employee_id);
 $stmt->execute();
 $assigned_members = $stmt->get_result()->fetch_assoc()['member_count'];
 
-// Fetch upcoming schedule
-$upcoming_schedule = "SELECT s.date, s.shift_time, s.job_role, 
-                     GROUP_CONCAT(m.full_name SEPARATOR ', ') as assigned_members
-                     FROM schedules s
-                     LEFT JOIN notifications n ON s.employee_id = n.employee_id
-                     LEFT JOIN members m ON n.member_id = m.id
-                     WHERE s.employee_id = ? AND s.date >= CURRENT_DATE()
-                     GROUP BY s.id
-                     ORDER BY s.date, s.shift_time
-                     LIMIT 4";
-$stmt = $conn->prepare($upcoming_schedule);
-$stmt->bind_param("i", $employee_id);
-$stmt->execute();
-$schedule_result = $stmt->get_result();
-
-// Fetch assigned members with their details
-$assigned_members_query = "SELECT DISTINCT m.full_name, m.membership_type, 
-                          CASE 
-                            WHEN EXISTS (
-                              SELECT 1 FROM schedules s 
-                              WHERE s.employee_id = n.employee_id 
-                              AND s.date = CURRENT_DATE
-                            ) THEN 'Present'
-                            ELSE 'Absent'
-                          END as attendance
-                          FROM notifications n
-                          JOIN members m ON n.member_id = m.id
-                          WHERE n.employee_id = ? AND n.message = 'hired'";
-$stmt = $conn->prepare($assigned_members_query);
-$stmt->bind_param("i", $employee_id);
-$stmt->execute();
-$members_result = $stmt->get_result();
+// Fetch duty roster (like in employee-schedule.php)
+$duty_roster = $conn->query("
+    SELECT s.date, s.shift_time, e.full_name AS in_charge, s.job_role
+    FROM schedules s
+    INNER JOIN employees e ON s.employee_id = e.id
+    ORDER BY s.date ASC, s.shift_time ASC
+    LIMIT 5
+");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -64,7 +41,6 @@ $members_result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus | Employee Dashboard</title>
     <link rel="stylesheet" href="employee.css">
-
 </head>
 <body>
     <!-- Sidebar -->
@@ -89,7 +65,7 @@ $members_result = $stmt->get_result();
             <div class="dashboard-datetime dashboard-datetime-style" id="dashboard-datetime"></div>
             <div class="user-profile">
                 <img src="../images/profile pictures/default-profile.svg" alt="User">
-                <span>Employee</span>
+                <span><?php echo htmlspecialchars($employee_name); ?></span>
             </div>
     <script>
     // Live date and time for dashboard
@@ -107,11 +83,13 @@ $members_result = $stmt->get_result();
 
         <!-- Summary Cards Row -->
         <div class="dashboard-summary-row">
+            <!-- Classes Today -->
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-classes-icon.svg" alt="Classes Today" class="summary-icon">
                 <div class="summary-number"><?php echo $classes_today; ?></div>
-                <div class="summary-label">Classes Today</div>
+                <div class="summary-label">Welcome ( <?php echo htmlspecialchars($employee_name); ?>)</div>
             </div>
+
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-members-icon.svg" alt="Assigned Members" class="summary-icon">
                 <div class="summary-number"><?php echo $assigned_members; ?></div>
@@ -137,22 +115,34 @@ $members_result = $stmt->get_result();
             </div>
         </div>
 
+<<<<<<< Updated upstream
         <!-- Large Card with Employee Table -->
     <!-- Available Coaches Section -->
     <div class="card card-margin-bottom">
             <div class="employee-table-title">Available Coaches Today</div>
+=======
+        <!-- Available Coaches Section -->
+        <div class="card card-margin-bottom">
+            <div class="employee-table-title">Available Coaches</div>
+>>>>>>> Stashed changes
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Coach Name</th>
                             <th>Position</th>
+<<<<<<< Updated upstream
                             <th>Available Times</th>
                             <th>Status</th>
+=======
+                            <th>Status</th>
+                            <th>Availability</th>
+>>>>>>> Stashed changes
                         </tr>
                     </thead>
                     <tbody>
                         <?php
+<<<<<<< Updated upstream
                         // Get coaches available today
                         $today_name = date('l'); // Gets day name (Monday, Tuesday, etc.)
                         $available_coaches_query = "SELECT 
@@ -189,6 +179,33 @@ $members_result = $stmt->get_result();
                             echo "<tr><td colspan='4' style='text-align: center;'>No coaches available today</td></tr>";
                         }
                         ?>
+=======
+                        $coachQuery = "
+                            SELECT e.id, e.full_name, e.position, e.status,
+                                   (SELECT COUNT(*) FROM coach_availability ca WHERE ca.employee_id = e.id) AS availability_count
+                            FROM employees e
+                            WHERE e.status = 'Active' AND e.full_name LIKE '%Coach%'
+                            ORDER BY e.full_name ASC
+                        ";
+                        $coachResult = $conn->query($coachQuery);
+
+                        if ($coachResult && $coachResult->num_rows > 0):
+                            while($coach = $coachResult->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($coach['full_name']); ?></td>
+                                    <td><?= htmlspecialchars($coach['position']); ?></td>
+                                    <td><?= htmlspecialchars($coach['status']); ?></td>
+                                    <td>
+                                        <span style="color: <?= $coach['availability_count'] > 0 ? 'green' : 'red'; ?>; font-weight: bold;">
+                                            <?= $coach['availability_count'] > 0 ? 'Available' : 'Not Available'; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endwhile;
+                        else: ?>
+                            <tr><td colspan="4">No coaches available.</td></tr>
+                        <?php endif; ?>
+>>>>>>> Stashed changes
                     </tbody>
                 </table>
             </div>
@@ -201,6 +218,7 @@ $members_result = $stmt->get_result();
                 <table>
                     <thead>
                         <tr>
+<<<<<<< Updated upstream
                             <th>Day</th>
                             <th>Shift Time</th>
                             <th>Job Role</th>
@@ -247,6 +265,29 @@ $members_result = $stmt->get_result();
                             echo "<tr><td colspan='4' style='text-align: center;'>No duties scheduled for this week</td></tr>";
                         }
                         ?>
+=======
+                            <th>Date</th>
+                            <th>Shift</th>
+                            <th>In-Charge</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($duty_roster && $duty_roster->num_rows > 0): ?>
+                            <?php while($row = $duty_roster->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo date("M d, Y", strtotime($row['date'])); ?></td>
+                                    <td><?php echo htmlspecialchars($row['shift_time']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['in_charge']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['job_role']); ?></td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="4">No roster entries found.</td>
+                            </tr>
+                        <?php endif; ?>
+>>>>>>> Stashed changes
                     </tbody>
                 </table>
             </div>
