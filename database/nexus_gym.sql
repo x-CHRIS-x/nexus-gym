@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 27, 2025 at 04:34 PM
+-- Generation Time: Sep 28, 2025 at 03:06 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -59,11 +59,11 @@ CREATE TABLE `coach_availability` (
 --
 
 INSERT INTO `coach_availability` (`id`, `employee_id`, `available_day`, `available_time`) VALUES
-(27, 1, 'Monday', '7am-5pm'),
-(40, 1, 'Monday', '7-5pm'),
-(41, 1, 'Monday', '7-5pm'),
-(42, 1, 'Monday', '7-5pm'),
-(69, 5, 'Any Day', 'Any Time');
+(27, 1, 'Monday', '07:00'),
+(70, 5, 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,', '07:00,09:00,11:00,13:00,15:00,17:00'),
+(71, 7, 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,', '07:00,09:00,11:00,13:00,15:00,17:00'),
+(72, 4, 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,', '07:00,09:00,11:00,13:00,15:00,17:00'),
+(73, 6, 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,', '07:00,09:00,11:00,13:00,15:00,17:00');
 
 -- --------------------------------------------------------
 
@@ -109,21 +109,42 @@ CREATE TABLE `members` (
   `phone` varchar(20) DEFAULT NULL,
   `membership_type` varchar(20) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
-  `join_date` date DEFAULT NULL
+  `join_date` date DEFAULT NULL,
+  `membership_end_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `members`
 --
 
-INSERT INTO `members` (`id`, `full_name`, `email`, `password`, `phone`, `membership_type`, `status`, `join_date`) VALUES
-(1, 'gian-crispo', 'gian-crispo@gmail.com', '$2y$10$V5aKTGFwH9uQg6XQI7q1wuDv.cDHcnNhPOAOb78jQZvY2oYrf6POW', '09612099217', 'Premium', 'Active', '2025-09-12'),
-(2, 'gngn', 'gngn@gmail.com', '$2y$10$hd2pGFc8lZt7KN/d.FW0PuGoukEsr1p9aQ3/gPJS9Kgp6g9hRdjdG', '1234', 'Standard', 'Active', '2000-08-30'),
-(3, 'member', 'member@gmail.com', '$2y$10$a9B8AWeUmZl7JCupgd8Hl...GruTveiycVjN/aoCH28eBFro7f.iO', '1234567890', 'Premium', 'Active', '0000-00-00'),
-(4, 'selwyn', 'selwyn@gmail.com', '$2y$10$5Ae3YGyQ3qdhggXl1ve1O.sgFS4HtkvgHt5lK0bH7bBMd9rkIpy2C', '0929292992', 'Premium', 'Active', '0000-00-00'),
-(5, 'Coach Jorem', 'jorem@gmail.com', '$2y$10$XnAduvAyAIwbq9qUFfjPzeMZ0rhnb/XBEvUIxceZ9TWSVSMKo7v/.', '094484848', 'Standard', 'Active', '2025-09-17'),
-(6, 'roy', 'roy@gmail.com', '$2y$10$.X8i.559RrZ1tSBYt7/zAeoJBx5MpYU6T5TX8ln.YCZVFdT2Ry6cK', '09494949', 'Standard', 'Active', '0000-00-00'),
-(7, 'test', 'test@gmail.com', '$2y$10$zf/nzE9qmUNj3fe8Jg9/2.A0l0AEdpvFz8vpO1WDk7NOGGldOcLLG', '1234', 'Standard', 'Active', '0000-00-00');
+INSERT INTO `members` (`id`, `full_name`, `email`, `password`, `phone`, `membership_type`, `status`, `join_date`, `membership_end_date`) VALUES
+(12, 'member1', 'member1@gmail.com', '$2y$10$MASKLmsyitV06XkXJKm7uO7NDCF8z.w5XRnjvPMgihhLsxXHqwHYO', '09999999999', 'Standard', 'Active', '2025-05-04', '2026-05-04'),
+(13, 'member2', 'member2@gmail.com', '$2y$10$imhkqb8S2tkxPu.x.Gpj9.8VFRTNxxv6IkrXY/99c3K9vYK0/8j0S', '09123456789', 'Premium', 'Active', '2025-01-24', '2026-01-24');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `membership_plans`
+--
+
+CREATE TABLE `membership_plans` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  `duration_months` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `membership_plans`
+--
+
+INSERT INTO `membership_plans` (`id`, `name`, `description`, `duration_months`, `price`, `created_at`) VALUES
+(1, 'Monthly', 'Basic monthly membership with access to all facilities', 1, 50.00, '2025-09-27 15:35:20'),
+(2, 'Quarterly', '3-month membership with access to all facilities', 3, 140.00, '2025-09-27 15:35:20'),
+(3, 'Semi-Annual', '6-month membership with access to all facilities', 6, 270.00, '2025-09-27 15:35:20'),
+(4, 'Annual', 'Full year membership with access to all facilities', 12, 500.00, '2025-09-27 15:35:20');
 
 -- --------------------------------------------------------
 
@@ -151,12 +172,53 @@ CREATE TABLE `member_progress` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `member_progress`
+-- Table structure for table `member_subscriptions`
 --
 
-INSERT INTO `member_progress` (`id`, `member_id`, `bench_press`, `incline_press`, `decline_press`, `chest_fly`, `overhead_press`, `lateral_raises`, `deadlift`, `lat_pulldown`, `weight_now`, `weight_before`, `squat`, `leg_press`, `romanian_deadlift`, `rdl`, `updated_at`) VALUES
-(1, 4, '100', '100', '100', '100', '100', '100', 100.00, 100.00, 100.00, 100.00, '100', '100', '100', '100', '2025-09-19 19:47:25');
+CREATE TABLE `member_subscriptions` (
+  `id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
+  `plan_id` int(11) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `status` enum('active','expired','cancelled') DEFAULT 'active',
+  `payment_status` enum('paid','pending','failed') DEFAULT 'pending',
+  `amount_paid` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Triggers `member_subscriptions`
+--
+DELIMITER $$
+CREATE TRIGGER `update_member_subscription_status` AFTER UPDATE ON `member_subscriptions` FOR EACH ROW BEGIN
+    
+    IF NEW.status IN ('expired', 'cancelled') AND OLD.status = 'active' THEN
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM member_subscriptions 
+            WHERE member_id = NEW.member_id 
+            AND status = 'active' 
+            AND id != NEW.id
+        ) THEN
+            
+            UPDATE members 
+            SET status = 'inactive' 
+            WHERE id = NEW.member_id;
+        END IF;
+    
+    ELSEIF NEW.status = 'active' AND OLD.status != 'active' THEN
+        
+        UPDATE members 
+        SET status = 'active' 
+        WHERE id = NEW.member_id;
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -171,16 +233,6 @@ CREATE TABLE `notifications` (
   `message` text NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `notifications`
---
-
-INSERT INTO `notifications` (`id`, `employee_id`, `member_id`, `message`, `created_at`) VALUES
-(7, 6, 1, 'hired', '2025-09-16 21:07:54'),
-(8, 4, 1, 'hired', '2025-09-16 21:13:32'),
-(9, 6, 1, 'hired', '2025-09-16 21:15:49'),
-(10, 6, 1, 'hired', '2025-09-17 04:06:07');
 
 -- --------------------------------------------------------
 
@@ -216,6 +268,22 @@ INSERT INTO `trainer_assignments` (`id`, `trainer_id`, `plan_day`) VALUES
 (1, 4, 'Monday'),
 (2, 4, 'Monday');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `training_sessions`
+--
+
+CREATE TABLE `training_sessions` (
+  `id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
+  `trainer_id` int(11) NOT NULL,
+  `session_date` date NOT NULL,
+  `session_time` time NOT NULL,
+  `status` enum('scheduled','completed','cancelled') DEFAULT 'scheduled',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -249,11 +317,25 @@ ALTER TABLE `members`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `membership_plans`
+--
+ALTER TABLE `membership_plans`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `member_progress`
 --
 ALTER TABLE `member_progress`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_member` (`member_id`);
+
+--
+-- Indexes for table `member_subscriptions`
+--
+ALTER TABLE `member_subscriptions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_id` (`member_id`),
+  ADD KEY `plan_id` (`plan_id`);
 
 --
 -- Indexes for table `notifications`
@@ -278,6 +360,14 @@ ALTER TABLE `trainer_assignments`
   ADD KEY `trainer_id` (`trainer_id`);
 
 --
+-- Indexes for table `training_sessions`
+--
+ALTER TABLE `training_sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `member_id` (`member_id`),
+  ADD KEY `trainer_id` (`trainer_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -291,7 +381,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `coach_availability`
 --
 ALTER TABLE `coach_availability`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `employees`
@@ -303,7 +393,13 @@ ALTER TABLE `employees`
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- AUTO_INCREMENT for table `membership_plans`
+--
+ALTER TABLE `membership_plans`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `member_progress`
@@ -312,10 +408,16 @@ ALTER TABLE `member_progress`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `member_subscriptions`
+--
+ALTER TABLE `member_subscriptions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `schedules`
@@ -328,6 +430,12 @@ ALTER TABLE `schedules`
 --
 ALTER TABLE `trainer_assignments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `training_sessions`
+--
+ALTER TABLE `training_sessions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
@@ -344,6 +452,13 @@ ALTER TABLE `coach_availability`
 --
 ALTER TABLE `member_progress`
   ADD CONSTRAINT `fk_member` FOREIGN KEY (`member_id`) REFERENCES `members` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `member_subscriptions`
+--
+ALTER TABLE `member_subscriptions`
+  ADD CONSTRAINT `member_subscriptions_ibfk_1` FOREIGN KEY (`member_id`) REFERENCES `members` (`id`),
+  ADD CONSTRAINT `member_subscriptions_ibfk_2` FOREIGN KEY (`plan_id`) REFERENCES `membership_plans` (`id`);
 
 --
 -- Constraints for table `notifications`
@@ -363,6 +478,13 @@ ALTER TABLE `schedules`
 --
 ALTER TABLE `trainer_assignments`
   ADD CONSTRAINT `trainer_assignments_ibfk_1` FOREIGN KEY (`trainer_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `training_sessions`
+--
+ALTER TABLE `training_sessions`
+  ADD CONSTRAINT `training_sessions_ibfk_1` FOREIGN KEY (`member_id`) REFERENCES `members` (`id`),
+  ADD CONSTRAINT `training_sessions_ibfk_2` FOREIGN KEY (`trainer_id`) REFERENCES `employees` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
