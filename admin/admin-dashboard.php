@@ -90,7 +90,19 @@ $result = $conn->query($sql);
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-progress-icon.svg" class="summary-icon summary-icon-38" alt="Revenue Overview">
-                <div class="summary-number summary-number-gold">₱120,000</div>
+                <div class="summary-number summary-number-gold">
+                    <?php
+                    // Calculate total revenue for current month
+                    $current_month = date('Y-m');
+                    $sql = "SELECT SUM(amount_paid) as total_revenue 
+                           FROM member_subscriptions 
+                           WHERE DATE_FORMAT(created_at, '%Y-%m') = '$current_month' 
+                           AND payment_status = 'paid'";
+                    $result = $conn->query($sql);
+                    $row = $result->fetch_assoc();
+                    echo '₱' . number_format($row['total_revenue'] ?? 0, 2);
+                    ?>
+                </div>
                 <div class="summary-label">Revenue (This Month)
                     </span>
                 </div>
@@ -101,17 +113,45 @@ $result = $conn->query($sql);
     <div class="flex-row flex-gap-24 flex-mb-24 flex-wrap">
             <div class="card card-flex-1 card-min-width-220 card-max-width-300">
                 <div class="employee-table-title">Attendance Today</div>
-                <div class="attendance-today-number">85</div>
+                <div class="attendance-today-number">
+                    <?php
+                    // Get count of today's training sessions
+                    $today = date('Y-m-d');
+                    $sql = "SELECT COUNT(*) as total_sessions 
+                           FROM training_sessions 
+                           WHERE session_date = '$today' 
+                           AND status = 'completed'";
+                    $result = $conn->query($sql);
+                    $row = $result->fetch_assoc();
+                    echo $row['total_sessions'] ?? 0;
+                    ?>
+                </div>
                 <div class="attendance-today-label">Check-ins</div>
             </div>
             <div class="card card-flex-2 card-min-width-260">
                 <div class="employee-table-title">Trainer Assignments Today</div>
                 <ul class="list-no-style list-no-padding list-no-margin">
-                    <li class="list-margin-bottom-8"><strong>marc jorem legazpi</strong> – Yoga, HIIT</li>
-                    <li class="list-margin-bottom-8"><strong>na1g</strong> – Pilates, Zumba</li>
-                    <li class="list-margin-bottom-8"><strong>Maofyy</strong> – Crossfit</li>
-                    <li class="list-margin-bottom-8"><strong>crcrzy</strong> – Boxing</li>
-                    <li class="list-margin-bottom-8"><strong>Kaishuie</strong> – Cardio</li>
+                    <?php
+                    // Get trainers available today
+                    $today_name = date('l'); // Gets day name (Monday, Tuesday, etc.)
+                    $sql = "SELECT DISTINCT e.full_name 
+                           FROM employees e 
+                           JOIN coach_availability ca ON e.id = ca.employee_id 
+                           WHERE e.status = 'Active' 
+                           AND e.position IN ('Trainer', 'Coach')
+                           AND ca.available_day LIKE '%$today_name%'
+                           ORDER BY e.full_name
+                           LIMIT 5";
+                    $result = $conn->query($sql);
+                    
+                    if ($result->num_rows > 0) {
+                        while($row = $result->fetch_assoc()) {
+                            echo "<li class='list-margin-bottom-8'><strong>" . htmlspecialchars($row['full_name']) . "</strong></li>";
+                        }
+                    } else {
+                        echo "<li class='list-margin-bottom-8'>No trainers scheduled for today</li>";
+                    }
+                    ?>
                 </ul>
             </div>
         </div>
@@ -130,36 +170,29 @@ $result = $conn->query($sql);
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>marc jorem legazpi</td>
-                            <td>₱2,000</td>
-                            <td>Aug 17, 2025</td>
-                            <td><span class="status active">Paid</span></td>
-                        </tr>
-                        <tr>
-                            <td>na1g</td>
-                            <td>₱1,500</td>
-                            <td>Aug 17, 2025</td>
-                            <td><span class="status active">Paid</span></td>
-                        </tr>
-                        <tr>
-                            <td>Maofyy</td>
-                            <td>₱2,500</td>
-                            <td>Aug 16, 2025</td>
-                            <td><span class="status inactive">Pending</span></td>
-                        </tr>
-                        <tr>
-                            <td>crcrzy</td>
-                            <td>₱2,000</td>
-                            <td>Aug 16, 2025</td>
-                            <td><span class="status active">Paid</span></td>
-                        </tr>
-                        <tr>
-                            <td>Kaishuie</td>
-                            <td>₱2,200</td>
-                            <td>Aug 16, 2025</td>
-                            <td><span class="status active">Paid</span></td>
-                        </tr>
+                        <?php
+                        // Get recent membership payments
+                        $sql = "SELECT m.full_name, ms.amount_paid, ms.created_at, ms.payment_status 
+                               FROM member_subscriptions ms 
+                               JOIN members m ON ms.member_id = m.id 
+                               ORDER BY ms.created_at DESC 
+                               LIMIT 5";
+                        $result = $conn->query($sql);
+                        
+                        if ($result->num_rows > 0) {
+                            while($row = $result->fetch_assoc()) {
+                                $status_class = $row['payment_status'] == 'paid' ? 'active' : 'inactive';
+                                echo "<tr>
+                                        <td>" . htmlspecialchars($row['full_name']) . "</td>
+                                        <td>₱" . number_format($row['amount_paid'], 2) . "</td>
+                                        <td>" . date('M d, Y', strtotime($row['created_at'])) . "</td>
+                                        <td><span class='status " . $status_class . "'>" . ucfirst($row['payment_status']) . "</span></td>
+                                    </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4'>No recent payments</td></tr>";
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>

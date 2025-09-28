@@ -38,14 +38,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $today = new DateTime();
     $new_end_date = $today->modify("+{$duration} months")->format('Y-m-d');
     
-    // Update member status, end date and membership type
-    $updateQuery = "UPDATE members SET status = 'Active', membership_end_date = ?, membership_type = ? WHERE id = ?";
-    $stmt = $conn->prepare($updateQuery);
-    $stmt->bind_param("ssi", $new_end_date, $membershipType, $memberId);
-    
-    if ($stmt->execute()) {
+    // Start transaction
+    $conn->begin_transaction();
+    try {
+        // Update member status, end date and membership type
+        $updateQuery = "UPDATE members SET status = 'Active', membership_end_date = ?, membership_type = ? WHERE id = ?";
+        $stmt = $conn->prepare($updateQuery);
+        $stmt->bind_param("ssi", $new_end_date, $membershipType, $memberId);
+        $stmt->execute();
+
+        // Get the plan ID based on duration and membership type
+        $planQuery = "SELECT id FROM membership_plans WHERE duration_months = ?";
+        $stmt = $conn->prepare($planQuery);
+        $stmt->bind_param("i", $duration);
+        $stmt->execute();
+        $planResult = $stmt->get_result();
+        $plan = $planResult->fetch_assoc();
+        $planId = $plan['id'];
+
+        // Insert subscription record
+        $subscriptionQuery = "INSERT INTO member_subscriptions (member_id, plan_id, start_date, end_date, status, payment_status, amount_paid) VALUES (?, ?, CURRENT_DATE, ?, 'active', 'paid', ?)";
+        $stmt = $conn->prepare($subscriptionQuery);
+        $stmt->bind_param("iiss", $memberId, $planId, $new_end_date, $amount);
+        $stmt->execute();
+
+        // Commit transaction
+        $conn->commit();
         $successMessage = "Membership renewed successfully! New expiry date: " . date('Y-m-d', strtotime($new_end_date));
-    } else {
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
         $errorMessage = "Error renewing membership. Please try again.";
     }
 }
