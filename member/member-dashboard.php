@@ -1,13 +1,34 @@
 <?php
 session_start();
 include '../db.php';
+include 'check_membership.php';
+
+// Check if member is logged in and handle expired membership
+if (!isset($_SESSION['member_id'])) {
+    header('Location: ../login.php');
+    exit;
+}
+
+handleExpiredMembership($conn, $_SESSION['member_id']);
 
 // Get logged-in member ID
 $member_id = $_SESSION['member_id'] ?? null;
 
-// Fetch progress if logged in
+// Fetch member details and progress if logged in
 $progress = null;
+$subscription = null;
 if ($member_id) {
+    // Fetch subscription details
+    $sub_stmt = $conn->prepare("SELECT membership_end_date FROM members WHERE id = ?");
+    $sub_stmt->bind_param("i", $member_id);
+    $sub_stmt->execute();
+    $subscription = $sub_stmt->get_result()->fetch_assoc();
+    $sub_stmt->close();
+    
+    // Determine subscription status based on end date
+    $today = new DateTime();
+    $end_date = new DateTime($subscription['membership_end_date']);
+    $subscription['subscription_status'] = ($end_date > $today) ? 'Active' : 'Expired';
     $stmt = $conn->prepare("SELECT * FROM member_progress WHERE member_id = ?");
     $stmt->bind_param("i", $member_id);
     $stmt->execute();
@@ -15,7 +36,7 @@ if ($member_id) {
     $stmt->close();
 
     // First, let's check how many trainers are hired
-    $hired_query = "SELECT e.id, e.full_name 
+    $hired_query = "SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS full_name 
                     FROM employees e 
                     INNER JOIN notifications n ON e.id = n.employee_id
                     WHERE n.member_id = ? AND n.message = 'hired'";
@@ -28,7 +49,8 @@ if ($member_id) {
 
     // Fetch upcoming booked sessions
     $sessions_query = "SELECT ts.session_date as date, ts.session_time as shift_time, 
-                             e.position as job_role, e.full_name as trainer_name
+                             e.position as job_role, 
+                             CONCAT(e.first_name, ' ', e.last_name) as trainer_name
                       FROM training_sessions ts
                       INNER JOIN employees e ON ts.trainer_id = e.id
                       WHERE ts.member_id = ? 
@@ -136,7 +158,7 @@ if ($member_id) {
         <div class="dashboard-summary-row">
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-My_Plan-icon.svg" class="summary-icon" alt="Membership Status">
-                <div class="summary-number subscription-active">Active</div>
+                <div class="summary-number subscription-<?= strtolower($subscription['subscription_status']) ?>"><?= htmlspecialchars(ucfirst($subscription['subscription_status'])) ?></div>
                 <div class="summary-label">Membership Status</div>
             </div>
             <div class="dashboard-card">
@@ -151,7 +173,7 @@ if ($member_id) {
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-payment-icon.svg" class="summary-icon" alt="Subscription Status">
-                <div class="summary-number subscription-expiry-active">Expires Sep 30, 2025</div>
+                <div class="summary-number subscription-expiry-<?= strtolower($subscription['subscription_status']) ?>">Expires <?= date('M d, Y', strtotime($subscription['membership_end_date'])) ?></div>
                 <div class="summary-label">Subscription Status</div>
             </div>
         </div>
@@ -228,8 +250,10 @@ if ($member_id) {
         <div class="card">
             <div class="employee-table-title">Subscription Reminder</div>
             <div class="subscription-reminder-row">
-                <span>Expiry date: <strong>Aug 31, 2025</strong></span>
-                <button class="action-btn edit-btn">Renew</button>
+                <span>Expiry date: <strong><?= date('M d, Y', strtotime($subscription['membership_end_date'])) ?></strong></span>
+                <?php if (strtotime($subscription['membership_end_date']) <= strtotime('+30 days')): ?>
+                    <button class="action-btn edit-btn" onclick="window.location.href='member-subscription.php'">Renew</button>
+                <?php endif; ?>
             </div>
         </div>
     </div>

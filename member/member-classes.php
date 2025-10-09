@@ -1,503 +1,506 @@
 <?php
+require_once '../includes/session_check.php';
 include '../db.php';
-session_start();
+check_session(['member']);
 
-// Logged-in member ID
-$member_id = $_SESSION['member_id'] ?? 1;
-
-// Handle booking request
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_session'])) {
-    $trainer_id = intval($_POST['trainer_id']);
-    $session_date = $_POST['session_date'];
-    $session_time = $_POST['session_time'];
-
-    // Start transaction
-    $conn->begin_transaction();
-    try {
-        // Check if trainer is already hired, if not, create hire notification
-        $check_hired = $conn->prepare("SELECT 1 FROM notifications WHERE employee_id = ? AND member_id = ? AND message = 'hired'");
-        $check_hired->bind_param("ii", $trainer_id, $member_id);
-        $check_hired->execute();
-        $is_hired = $check_hired->get_result()->num_rows > 0;
-        $check_hired->close();
-
-        if (!$is_hired) {
-            $hire_stmt = $conn->prepare("INSERT INTO notifications (employee_id, member_id, message) VALUES (?, ?, 'hired')");
-            $hire_stmt->bind_param("ii", $trainer_id, $member_id);
-            $hire_stmt->execute();
-            $hire_stmt->close();
-        }
-
-        // Book the session
-        $book_stmt = $conn->prepare("INSERT INTO training_sessions (member_id, trainer_id, session_date, session_time) VALUES (?, ?, ?, ?)");
-        $book_stmt->bind_param("iiss", $member_id, $trainer_id, $session_date, $session_time);
-        $book_stmt->execute();
-        $book_stmt->close();
-
-        $conn->commit();
-        $ok = true;
-    } catch (Exception $e) {
-        $conn->rollback();
-        $ok = false;
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode(['success' => $ok, 'msg' => $ok ? 'Session booked successfully!' : 'Failed to book session']);
+// Check if member is logged in
+if (!isset($_SESSION['member_id'])) {
+    header('Location: ../login.php');
     exit;
 }
 
-// Fetch coaches with availability
-$coachQuery = "
+$member_id = $_SESSION['member_id'];
+
+// Helper function to convert time slot to actual time
+function getTimeForSlot($slot) {
+    switch ($slot) {
+        case 'Morning':
+            return '7:00 AM - 9:00 AM';
+        case 'Afternoon':
+            return '2:00 PM - 4:00 PM';
+        case 'Evening':
+            return '6:00 PM - 8:00 PM';
+        default:
+            return '';
+    }
+}
+
+// Get selected day (default to today)
+$selected_day = isset($_GET['day']) ? $_GET['day'] : date('l');
+$current_day = date('l');
+
+// Handle class booking request via AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_class'])) {
+    $response = ['success' => false, 'msg' => ''];
+    
+    $class_id = intval($_POST['class_id']);
+    $booking_date = $_POST['booking_date'];
+
+    // Start transaction
+    $conn->begin_transaction();
+    
+    try {
+        // Check if member has already booked this class for this date
+        $check_booking = $conn->prepare("
+            SELECT 1 FROM class_bookings 
+            WHERE member_id = ? AND class_id = ? AND booking_date = ?
+            AND status = 'booked'
+        ");
+        $check_booking->bind_param("iis", $member_id, $class_id, $booking_date);
+        $check_booking->execute();
+        
+        if ($check_booking->get_result()->num_rows > 0) {
+            throw new Exception("You have already booked this class for this date.");
+        }
+        
+        // Check class capacity
+        $check_capacity = $conn->prepare("
+            SELECT 
+                fc.capacity,
+                fc.trainer_id,
+                (
+                    SELECT COUNT(*) 
+                    FROM class_bookings cb 
+                    WHERE cb.class_id = fc.id 
+                    AND cb.booking_date = ?
+                    AND cb.status = 'booked'
+                ) as current_bookings
+            FROM fitness_classes fc
+            WHERE fc.id = ?
+        ");
+        $check_capacity->bind_param("si", $booking_date, $class_id);
+        $check_capacity->execute();
+        $details = $check_capacity->get_result()->fetch_assoc();
+        
+        if ($details['current_bookings'] >= $details['capacity']) {
+            throw new Exception("This class is fully booked for the selected date.");
+        }
+
+        // Book the class
+        $book_stmt = $conn->prepare("
+            INSERT INTO class_bookings 
+            (class_id, member_id, booking_date, status) 
+            VALUES (?, ?, ?, 'booked')
+        ");
+        $book_stmt->bind_param("iis", $class_id, $member_id, $booking_date);
+        $book_stmt->execute();
+
+        // Create notification for trainer
+        $notification_stmt = $conn->prepare("
+            INSERT INTO notifications 
+            (employee_id, member_id, message, created_at) 
+            VALUES (?, ?, CONCAT('New booking for ', (SELECT name FROM fitness_classes WHERE id = ?)), NOW())
+        ");
+        $notification_stmt->bind_param("iii", $details['trainer_id'], $member_id, $class_id);
+        $notification_stmt->execute();
+
+        $conn->commit();
+        $response['success'] = true;
+        $response['msg'] = 'Class booked successfully!';
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        $response['msg'] = $e->getMessage();
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
+}
+
+// Fetch classes for the selected day
+$classQuery = "
     SELECT 
-        e.id AS coach_id, 
-        e.full_name, 
+        fc.id AS class_id,
+        fc.name AS class_name,
+        fc.description,
+        fc.day_of_week,
+        fc.time_slot,
+        fc.capacity,
+        e.id AS trainer_id,
+        CONCAT(e.first_name, ' ', e.last_name) as trainer_name,
         e.position,
-        COUNT(ca.id) AS availability_count,
-        GROUP_CONCAT(DISTINCT ca.available_day) as available_days,
-        GROUP_CONCAT(DISTINCT ca.available_time) as available_times
-    FROM employees e
-    LEFT JOIN coach_availability ca ON e.id = ca.employee_id
-    WHERE e.status='Active' AND e.full_name LIKE '%Coach%'
-    GROUP BY e.id
-    ORDER BY e.full_name ASC
-";
-$stmt = $conn->prepare($coachQuery);
-    $stmt->execute();
-    $coachResult = $stmt->get_result();
-    $stmt->close();
+        (
+            SELECT COUNT(*)
+            FROM class_bookings cb
+            WHERE cb.class_id = fc.id
+            AND cb.booking_date = CURDATE()
+            AND cb.status = 'booked'
+        ) as current_bookings
+    FROM fitness_classes fc
+    JOIN employees e ON fc.trainer_id = e.id
+    WHERE fc.day_of_week = ?
+    AND e.status = 'Active'
+    ORDER BY FIELD(fc.time_slot, 'Morning', 'Afternoon', 'Evening')";
+
+$stmt = $conn->prepare($classQuery);
+$stmt->bind_param("s", $selected_day);
+$stmt->execute();
+$classResult = $stmt->get_result();
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Nexus | Member - Classes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="member.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<style>
-.msg-success { color: #0a7a00; padding:10px 0; }
-.btn-hire { padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#1a73e8; color:#fff; }
-.btn-hired { background:#6c757d; cursor:default; opacity:.8; }
-.avail-label { padding:4px 8px; border-radius:6px; font-weight:600; }
-.avail-yes { background:#d8f5d8; color:#0a7a00; }
-.avail-no { background:#ffecec; color:#c11; }
+    <meta charset="UTF-8">
+    <title>Nexus | Member - Classes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="member.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .msg-success { color: #0a7a00; padding:10px 0; }
+        .avail-label { padding:4px 8px; border-radius:6px; font-weight:600; }
+        .avail-yes { background:#d8f5d8; color:#0a7a00; }
+        .avail-no { background:#ffecec; color:#c11; }
+        
+        .class-card {
+            background: #1e2a38;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .class-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #f5f5f5;
+        }
+        
+        .class-time {
+            color: #00c4ff;
+            font-weight: 500;
+        }
+        
+        .class-description {
+            color: #8a94a6;
+            margin: 10px 0;
+        }
+        
+        .class-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .trainer-info {
+            color: #f5f5f5;
+        }
+        
+        .trainer-position {
+            color: #8a94a6;
+            font-size: 0.9em;
+        }
+        
+        .day-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .day-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #2d3748;
+            color: #f5f5f5;
+            transition: all 0.2s;
+        }
+        
+        .day-btn.active {
+            background: #00c4ff;
+            color: #fff;
+        }
+        
+        .day-btn:hover:not(.active) {
+            background: #4a5568;
+        }
+        
+        .btn-book {
+            padding: 8px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background: #00c4ff;
+            color: #fff;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-book:hover {
+            background: #0099ff;
+            transform: translateY(-1px);
+        }
+        
+        .btn-book:disabled {
+            background: #4a5568;
+            cursor: not-allowed;
+        }
 
-/* Modal styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7);
-}
-
-.modal-content {
-    background-color: #1e2a38;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #2d3748;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 8px;
-    color: #f5f5f5;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.close {
-    color: #f5f5f5;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close:hover {
-    color: #00c4ff;
-}
-
-.booking-form {
-    margin-top: 20px;
-}
-
-.booking-form label {
-    display: block;
-    margin-bottom: 5px;
-    color: #f5f5f5;
-}
-
-.booking-form input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    background-color: #2d3748;
-    border: 1px solid #4a5568;
-    border-radius: 4px;
-    color: #f5f5f5;
-}
-
-.booking-form input:focus {
-    border-color: #00c4ff;
-    outline: none;
-}
-
-.booking-form button {
-    background-color: #00c4ff;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.booking-form button:hover {
-    background-color: #0099ff;
-}
-
-/* Calendar dark theme overrides */
-.flatpickr-calendar {
-    background: #1e2a38;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    border: 1px solid #2d3748;
-}
-
-.flatpickr-month {
-    background: #1e2a38;
-    color: #f5f5f5;
-}
-
-.flatpickr-weekday {
-    background: #1e2a38;
-    color: #00c4ff;
-}
-
-.flatpickr-day {
-    color: #f5f5f5;
-    background: #2d3748;
-    border: 1px solid #1e2a38;
-}
-
-.flatpickr-day.selected {
-    background: #00c4ff;
-    border-color: #00c4ff;
-}
-
-.flatpickr-day:hover {
-    background: #4a5568;
-}
-
-.flatpickr-day.disabled {
-    color: #4a5568;
-    background: #1e2a38;
-}
-
-.flatpickr-current-month {
-    color: #f5f5f5;
-}
-
-.flatpickr-time {
-    background: #1e2a38;
-    border-top: 1px solid #2d3748;
-}
-
-.flatpickr-time input {
-    color: #f5f5f5;
-    background: #2d3748;
-}
-
-.flatpickr-time .flatpickr-am-pm {
-    color: #f5f5f5;
-    background: #2d3748;
-}
-
-.numInputWrapper:hover {
-    background: #4a5568;
-}
-
-.btn-book {
-    padding: 8px 15px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    background: #00c4ff;
-    color: #fff;
-    font-weight: 500;
-    transition: background-color 0.2s;
-}
-
-.btn-book:hover {
-    background: #0099ff;
-}
-
-.btn-book:active {
-    transform: translateY(1px);
-}
-</style>
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        
+        .modal-content {
+            background-color: #1e2a38;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #2d3748;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            color: #f5f5f5;
+        }
+        
+        .close {
+            color: #f5f5f5;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #00c4ff;
+        }
+        
+        .booking-form button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background: #00c4ff;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .booking-form button:hover {
+            background: #0099ff;
+        }
+    </style>
 </head>
 <body>
-<div class="sidebar">
-    <div class="logo">NEXUS</div>
-    <ul class="nav-menu">
-        <li><a href="member-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" class="nav-icon"> Dashboard</a></li>
-        <li class="active"><a href="member-classes.php"><img src="../images/icons/dashboard-classes-icon.svg" class="nav-icon"> Classes</a></li>
-        <li><a href="member-my-plan.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" class="nav-icon"> My Plan</a></li>
-        <li><a href="member-progress.php"><img src="../images/icons/dashboard-progress-icon.svg" class="nav-icon"> Progress</a></li>
-        <li><a href="member-subscription.php"><img src="../images/icons/dashboard-payment-icon.svg" class="nav-icon"> Subscription</a></li>
-        <li><a href="member-profile.php"><img src="../images/icons/dashboard-profile-icon.svg" class="nav-icon"> Profile</a></li>
-    </ul>
-    <div class="logout-container">
-        <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" class="nav-icon"> Logout</a>
-    </div>
-</div>
-
-<div class="main-content">
-    <div class="header">
-        <h2>Fitness Classes</h2>
-        <div class="user-profile">
-            <img src="../images/profile pictures/default-profile.svg" alt="User">
-            <span>Member</span>
+    <div class="sidebar">
+        <div class="logo">NEXUS</div>
+        <ul class="nav-menu">
+            <li><a href="member-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" class="nav-icon"> Dashboard</a></li>
+            <li class="active"><a href="member-classes.php"><img src="../images/icons/dashboard-classes-icon.svg" class="nav-icon"> Classes</a></li>
+            <li><a href="member-my-plan.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" class="nav-icon"> My Plan</a></li>
+            <li><a href="member-progress.php"><img src="../images/icons/dashboard-progress-icon.svg" class="nav-icon"> Progress</a></li>
+            <li><a href="member-subscription.php"><img src="../images/icons/dashboard-payment-icon.svg" class="nav-icon"> Subscription</a></li>
+            <li><a href="member-profile.php"><img src="../images/icons/dashboard-profile-icon.svg" class="nav-icon"> Profile</a></li>
+        </ul>
+        <div class="logout-container">
+            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" class="nav-icon"> Logout</a>
         </div>
     </div>
 
-    <!-- Trainers List -->
-    <div class="card card-margin-top">
-        <div class="employee-table-title">Available Trainers & Schedule</div>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Trainer</th>
-                        <th>Specialization</th>
-                        <th>Available Time</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($coachResult && $coachResult->num_rows > 0): ?>
-                        <?php while ($c = $coachResult->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($c['full_name']) ?></td>
-                            <td><?= htmlspecialchars($c['position']) ?></td>
-                            <td>
-                                <?php if (intval($c['availability_count']) > 0): 
-                                    $days = explode(',', $c['available_days']);
-                                    $times = explode(',', $c['available_times']);
-                                    $formatted_times = array_map(function($time) {
-                                        return date('h:i A', strtotime($time));
-                                    }, $times);
-                                    ?>
-                                    <div class="avail-label avail-yes" data-days="<?= htmlspecialchars($c['available_days']) ?>" data-times="<?= htmlspecialchars($c['available_times']) ?>">
-                                        <div><strong>Days:</strong> <?= htmlspecialchars(implode(', ', $days)) ?></div>
-                                        <div><strong>Times:</strong> <?= htmlspecialchars(implode(', ', $formatted_times)) ?></div>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="avail-label avail-no">Not Available</div>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if (intval($c['availability_count']) > 0): ?>
-                                    <button class="btn-book" onclick="openBookingModal(<?= $c['coach_id'] ?>, '<?= htmlspecialchars($c['full_name']) ?>', '<?= htmlspecialchars($c['available_days']) ?>', '<?= htmlspecialchars($c['available_times']) ?>')">Book Session</button>
-                                <?php else: ?>
-                                    <button class="btn-book" disabled style="opacity: 0.6;">Not Available</button>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr><td colspan="4">No available coaches at the moment.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+    <div class="main-content">
+        <div class="header">
+            <h2>Fitness Classes</h2>
+            <div class="user-profile">
+                <img src="../images/profile pictures/default-profile.svg" alt="User">
+                <span>Member</span>
+            </div>
         </div>
-    </div>
-</div>
 
-<!-- Booking Modal -->
-<div id="bookingModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Book a Session</h2>
-        <form id="bookingForm" class="booking-form">
-            <input type="hidden" name="trainer_id" id="trainer_id">
-            <input type="hidden" name="book_session" value="1">
-            <input type="hidden" name="ajax" value="1">
-            
-            <div id="trainerInfo"></div>
-            <div id="availabilityInfo" style="margin: 10px 0;"></div>
-            
-            <label for="session_date">Select Date:</label>
-            <input type="text" id="session_date" name="session_date" required>
-            
-            <label for="session_time">Select Time:</label>
-            <input type="text" id="session_time" name="session_time" required>
-            
-            <button type="submit">Book Session</button>
-        </form>
-    </div>
-</div>
-
-<script>
-function formatTime(timeStr) {
-    // Convert 24-hour time to Date object
-    const [hours, minutes] = timeStr.split(':');
-    const date = new Date();
-    date.setHours(parseInt(hours));
-    date.setMinutes(parseInt(minutes));
-    return date;
-}
-
-function openBookingModal(trainerId, trainerName, availableDays, availableTimes) {
-    document.getElementById('trainer_id').value = trainerId;
-    document.getElementById('trainerInfo').innerHTML = `<strong>Trainer:</strong> ${trainerName}`;
-    
-    // Parse available days and times
-    const days = availableDays.split(',').map(day => day.trim());
-    const times = availableTimes.split(',').map(time => time.trim());
-    
-    // Convert times to 12-hour format for display
-    const formattedTimes = times.map(time => {
-        const [hours, minutes] = time.split(':');
-        return new Date(2025, 0, 1, hours, minutes).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-    });
-
-    // Show available slots in the modal
-    document.getElementById('availabilityInfo').innerHTML = `
-        <div style="margin-bottom: 10px;">
-            <strong>Available Days:</strong> ${days.join(', ')}
-        </div>
-        <div>
-            <strong>Available Time Slots:</strong> ${formattedTimes.join(', ')}
-        </div>
-    `;
-
-    // Initialize date picker
-    flatpickr('#session_date', {
-        dateFormat: 'Y-m-d',
-        minDate: 'today',
-        maxDate: new Date().fp_incr(60),
-        enable: [
-            function(date) {
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-                return days.includes(dayName);
+        <div class="day-selector">
+            <?php
+            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            foreach ($days as $day) {
+                $activeClass = ($day === $selected_day) ? 'active' : '';
+                echo "<button class='day-btn $activeClass' data-day='$day'>$day</button>";
             }
-        ],
-        theme: 'dark',
-        disableMobile: true
-    });
+            ?>
+        </div>
 
-    // Remove any existing time select
-    const existingSelect = document.getElementById('time_select');
-    if (existingSelect) {
-        existingSelect.remove();
-    }
+        <div class="card">
+            <div class="card-content">
+                <?php if ($classResult && $classResult->num_rows > 0): ?>
+                    <?php while ($class = $classResult->fetch_assoc()): ?>
+                        <div class="class-card">
+                            <div class="class-header">
+                                <div class="class-name"><?= htmlspecialchars($class['class_name']) ?></div>
+                                <div class="class-time"><?= htmlspecialchars(getTimeForSlot($class['time_slot'])) ?></div>
+                            </div>
+                            <div class="class-description"><?= htmlspecialchars($class['description']) ?></div>
+                            <div class="class-details">
+                                <div class="trainer-info">
+                                    <div><?= htmlspecialchars($class['trainer_name']) ?></div>
+                                    <div class="trainer-position"><?= htmlspecialchars($class['position']) ?></div>
+                                </div>
+                                <div class="booking-section">
+                                    <?php
+                                    $spots_left = $class['capacity'] - $class['current_bookings'];
+                                    $availability_class = $spots_left > 0 ? 'avail-yes' : 'avail-no';
+                                    $availability_text = $spots_left > 0 ? "$spots_left spots left" : "Fully Booked";
+                                    ?>
+                                    <div class="avail-label <?= $availability_class ?>" style="margin-bottom: 10px;">
+                                        <?= $availability_text ?>
+                                    </div>
+                                    <?php if ($spots_left > 0): ?>
+                                        <button class="btn-book" onclick="bookClass(<?= $class['class_id'] ?>, '<?= htmlspecialchars($class['class_name']) ?>', '<?= htmlspecialchars($class['time_slot']) ?>', '<?= htmlspecialchars($class['trainer_name']) ?>')">
+                                            Book Class
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn-book" disabled>Fully Booked</button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div style="text-align: center; padding: 20px;">No classes scheduled for <?= htmlspecialchars($selected_day) ?>.</div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 
-    // Create custom time select dropdown
-    const timeSelect = document.createElement('select');
-    timeSelect.id = 'time_select';
-    timeSelect.style.width = '100%';
-    timeSelect.style.padding = '8px';
-    timeSelect.style.marginBottom = '15px';
-    timeSelect.style.backgroundColor = '#2d3748';
-    timeSelect.style.border = '1px solid #4a5568';
-    timeSelect.style.borderRadius = '4px';
-    timeSelect.style.color = '#f5f5f5';
-    timeSelect.style.cursor = 'pointer';
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Book a Class</h2>
+            <form id="bookingForm" class="booking-form">
+                <input type="hidden" name="class_id" id="class_id">
+                <input type="hidden" name="book_class" value="1">
+                <input type="hidden" name="booking_date" id="booking_date">
+                
+                <div id="classInfo" style="margin-bottom: 20px;"></div>
+                
+                <button type="submit">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
 
-    // Add default option
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Select a time slot';
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    timeSelect.appendChild(defaultOption);
-
-    // Add available time options
-    times.forEach(time => {
-        const option = document.createElement('option');
-        option.value = time;
-        const [hours, minutes] = time.split(':');
-        const displayTime = new Date(2025, 0, 1, hours, minutes).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
+    <script>
+    // Handle day selection
+    document.querySelectorAll('.day-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const day = this.dataset.day;
+            window.location.href = `member-classes.php?day=${day}`;
         });
-        option.textContent = displayTime;
-        timeSelect.appendChild(option);
     });
 
-    // Replace the flatpickr time input with our custom select
-    const timeInput = document.getElementById('session_time');
-    timeInput.type = 'hidden';
-    timeInput.parentNode.insertBefore(timeSelect, timeInput);
-
-    // Update hidden input when select changes
-    timeSelect.addEventListener('change', function(e) {
-        timeInput.value = e.target.value;
-    });
-
-    document.getElementById('bookingModal').style.display = 'block';
-}
-
-// Close modal when clicking (x) or outside
-document.querySelector('.close').onclick = function() {
-    document.getElementById('bookingModal').style.display = 'none';
-    // Reset form when closing
-    document.getElementById('bookingForm').reset();
-    const existingSelect = document.getElementById('time_select');
-    if (existingSelect) {
-        existingSelect.remove();
+    function bookClass(classId, className, timeSlot, trainerName) {
+        const today = new Date();
+        const selectedDay = '<?= $selected_day ?>';
+        
+        // Calculate next occurrence of the selected day
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayIndex = today.getDay();
+        const selectedDayIndex = days.indexOf(selectedDay);
+        
+        let daysToAdd = selectedDayIndex - todayIndex;
+        if (daysToAdd <= 0) {
+            daysToAdd += 7; // Move to next week if day has passed
+        }
+        
+        const bookingDate = new Date(today);
+        bookingDate.setDate(today.getDate() + daysToAdd);
+        
+        // Format date for database (YYYY-MM-DD)
+        const formattedDate = bookingDate.toISOString().split('T')[0];
+        
+        // Set up the booking modal
+        document.getElementById('class_id').value = classId;
+        document.getElementById('booking_date').value = formattedDate;
+        
+        document.getElementById('classInfo').innerHTML = `
+            <div style="margin-bottom: 10px;"><strong>Class:</strong> ${className}</div>
+            <div style="margin-bottom: 10px;"><strong>Day:</strong> ${selectedDay}</div>
+            <div style="margin-bottom: 10px;"><strong>Time:</strong> ${getTimeForSlot(timeSlot)}</div>
+            <div style="margin-bottom: 10px;"><strong>Date:</strong> ${formatDate(formattedDate)}</div>
+            <div><strong>Trainer:</strong> ${trainerName}</div>
+        `;
+        
+        document.getElementById('bookingModal').style.display = 'block';
     }
-}
 
-window.onclick = function(event) {
-    if (event.target == document.getElementById('bookingModal')) {
+    function getTimeForSlot(slot) {
+        switch (slot) {
+            case 'Morning':
+                return '7:00 AM - 9:00 AM';
+            case 'Afternoon':
+                return '2:00 PM - 4:00 PM';
+            case 'Evening':
+                return '6:00 PM - 8:00 PM';
+            default:
+                return '';
+        }
+    }
+
+    function formatDate(dateStr) {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    // Close modal when clicking (x) or outside
+    document.querySelector('.close').onclick = function() {
         document.getElementById('bookingModal').style.display = 'none';
-        // Reset form when closing
         document.getElementById('bookingForm').reset();
-        const existingSelect = document.getElementById('time_select');
-        if (existingSelect) {
-            existingSelect.remove();
+    }
+
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('bookingModal')) {
+            document.getElementById('bookingModal').style.display = 'none';
+            document.getElementById('bookingForm').reset();
         }
     }
-}
 
-// Display modal when clicking Book Session
-document.addEventListener('DOMContentLoaded', function() {
-});
+    // Handle form submission
+    $('#bookingForm').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const btn = form.find('button');
+        
+        btn.prop('disabled', true).text('Booking...');
 
-$('#bookingForm').on('submit', function(e) {
-    e.preventDefault();
-    const form = $(this);
-    const btn = form.find('button');
-
-    btn.prop('disabled', true).text('Booking...');
-
-    $.post(window.location.href, form.serialize(), function(resp) {
-        if (resp && resp.success) {
-            $('#bookingModal').hide();
-            $('<div class="msg-success">Session booked successfully!</div>')
-              .insertBefore('.card').delay(2500).fadeOut(400, function(){ $(this).remove(); });
-            form[0].reset();
-        } else {
-            alert(resp.msg || 'Failed to book session.');
-        }
-        btn.prop('disabled', false).text('Book Session');
-    }, 'json').fail(function() {
-        btn.prop('disabled', false).text('Book Session');
-        alert('Failed to book session. Please try again.');
+        $.post(window.location.href, form.serialize(), function(resp) {
+            if (resp.success) {
+                $('#bookingModal').hide();
+                $('<div class="msg-success">' + resp.msg + '</div>')
+                    .insertBefore('.card')
+                    .delay(2500)
+                    .fadeOut(400, function() { $(this).remove(); });
+                form[0].reset();
+                // Reload the page to refresh class availability
+                setTimeout(() => location.reload(), 3000);
+            } else {
+                alert(resp.msg || 'Failed to book class.');
+            }
+            btn.prop('disabled', false).text('Confirm Booking');
+        }, 'json').fail(function() {
+            btn.prop('disabled', false).text('Confirm Booking');
+            alert('Failed to book class. Please try again.');
+        });
     });
-});
-</script>
+    </script>
 </body>
 </html>

@@ -1,4 +1,13 @@
-<?php session_start(); ?>
+<?php 
+session_start();
+session_destroy(); // Destroy any existing session when accessing login page
+session_start(); // Start a new session
+
+// Cache control headers to prevent browser back button after logout
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+?>
 <!doctype html>
 <html lang="en">
 <head>

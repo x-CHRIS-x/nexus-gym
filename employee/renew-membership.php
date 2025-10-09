@@ -32,22 +32,42 @@ if (!$member) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $duration = $_POST['duration'];
     $amount = $_POST['amount'];
+    $membershipType = $_POST['membershipType'];
     
     // Calculate new membership end date from today
     $today = new DateTime();
     $new_end_date = $today->modify("+{$duration} months")->format('Y-m-d');
     
-    // Get the new membership type
-    $membershipType = $_POST['membershipType'];
-    
-    // Update member status, end date and membership type
-    $updateQuery = "UPDATE members SET status = 'Active', membership_end_date = ?, membership_type = ? WHERE id = ?";
-    $stmt = $conn->prepare($updateQuery);
-    $stmt->bind_param("ssi", $new_end_date, $membershipType, $memberId);
-    
-    if ($stmt->execute()) {
+    // Start transaction
+    $conn->begin_transaction();
+    try {
+        // Update member status, end date and membership type
+        $updateQuery = "UPDATE members SET status = 'Active', membership_end_date = ?, membership_type = ? WHERE id = ?";
+        $stmt = $conn->prepare($updateQuery);
+        $stmt->bind_param("ssi", $new_end_date, $membershipType, $memberId);
+        $stmt->execute();
+
+        // Get the plan ID based on duration and membership type
+        $planQuery = "SELECT id FROM membership_plans WHERE duration_months = ?";
+        $stmt = $conn->prepare($planQuery);
+        $stmt->bind_param("i", $duration);
+        $stmt->execute();
+        $planResult = $stmt->get_result();
+        $plan = $planResult->fetch_assoc();
+        $planId = $plan['id'];
+
+        // Insert subscription record
+        $subscriptionQuery = "INSERT INTO member_subscriptions (member_id, plan_id, start_date, end_date, status, payment_status, amount_paid) VALUES (?, ?, CURRENT_DATE, ?, 'active', 'paid', ?)";
+        $stmt = $conn->prepare($subscriptionQuery);
+        $stmt->bind_param("iiss", $memberId, $planId, $new_end_date, $amount);
+        $stmt->execute();
+
+        // Commit transaction
+        $conn->commit();
         $successMessage = "Membership renewed successfully! New expiry date: " . date('Y-m-d', strtotime($new_end_date));
-    } else {
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
         $errorMessage = "Error renewing membership. Please try again.";
     }
 }
@@ -82,6 +102,25 @@ $plans = [
             margin-top: 20px;
             border: 1px solid #35373bff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            position: relative;
+        }
+        .back-button {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: #2c3446;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-button:hover {
+            background: #374151;
         }
         .form-header {
             font-size: 2.5em;
@@ -207,11 +246,17 @@ $plans = [
 
         <div class="renewal-form">
             <div class="form-header">Renew Membership Form</div>
+            <a href="employee-members.php" class="back-button">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Members
+            </a>
             <form method="POST" action="">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Full Name</label>
-                        <input type="text" value="<?php echo htmlspecialchars($member['full_name']); ?>" readonly>
+                        <input type="text" value="<?php echo htmlspecialchars($member['first_name'].' ' .$member['last_name']); ?>" readonly>
                     </div>
                     <div class="form-group">
                         <label>Member ID</label>
@@ -241,12 +286,26 @@ $plans = [
                     <span class="amount" id="totalAmount">₱450</span>
                     <input type="hidden" name="amount" id="amountInput" value="450">
                 </div>
-                <button type="submit" class="submit-btn">Renew</button>
+                <button type="submit" class="submit-btn" id="renewBtn" <?php echo isset($successMessage) ? 'disabled style="background: #666; cursor: not-allowed;"' : ''; ?>>
+                    <?php echo isset($successMessage) ? 'Membership Renewed' : 'Renew'; ?>
+                </button>
             </form>
         </div>
     </div>
 
     <script>
+    // Prevent form resubmission on page refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
+    // Disable form submission if already successful
+    <?php if (isset($successMessage)): ?>
+    document.querySelector('form').onsubmit = function(e) {
+        e.preventDefault();
+        return false;
+    };
+    <?php endif; ?>
     function updateAmount() {
         const duration = document.getElementById('duration').value;
         const membershipType = document.getElementById('membershipType').value.toLowerCase();

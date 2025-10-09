@@ -3,7 +3,8 @@ include '../db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $memberId = $_POST['memberId'];
-    $fullName = $_POST['fullName'];
+    $firstName = $_POST['firstName'];
+    $lastName = $_POST['lastName'];
     $email = $_POST['email'];
     $phone = $_POST['phone'];
     $membershipType = $_POST['membershipType'];
@@ -25,14 +26,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // If password is provided, update it
     if (!empty($_POST['password'])) {
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $query = "UPDATE members SET full_name=?, email=?, password=?, phone=?, membership_type=?, join_date=?, status=? WHERE id=?";
+        $query = "UPDATE members SET first_name=?, last_name=?, email=?, password=?, phone=?, membership_type=?, join_date=?, status=? WHERE id=?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("sssssssi", $fullName, $email, $password, $phone, $membershipType, $joinDate, $status, $memberId);
+        $stmt->bind_param("ssssssssi", $firstName, $lastName, $email, $password, $phone, $membershipType, $joinDate, $status, $memberId);
     } else {
         // If no password provided, update without changing password
-        $query = "UPDATE members SET full_name=?, email=?, phone=?, membership_type=?, join_date=?, status=? WHERE id=?";
+        $query = "UPDATE members SET first_name=?, last_name=?, email=?, phone=?, membership_type=?, join_date=?, status=? WHERE id=?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("ssssssi", $fullName, $email, $phone, $membershipType, $joinDate, $status, $memberId);
+        $stmt->bind_param("sssssssi", $firstName, $lastName, $email, $phone, $membershipType, $joinDate, $status, $memberId);
     }
 
     if ($stmt->execute()) {

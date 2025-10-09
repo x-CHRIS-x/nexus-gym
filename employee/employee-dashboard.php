@@ -1,6 +1,9 @@
 <?php
+include '../includes/session_check.php';
 include '../db.php';
-session_start();
+
+check_session(['employee']);
+
 
 // Get employee ID from session (you'll need to set this during login)
 $employee_id = 1; // Temporarily hardcoded, should come from $_SESSION['employee_id']
@@ -26,7 +29,7 @@ $assigned_members = $stmt->get_result()->fetch_assoc()['member_count'];
 
 // Fetch upcoming schedule
 $upcoming_schedule = "SELECT s.date, s.shift_time, s.job_role, 
-                     GROUP_CONCAT(m.full_name SEPARATOR ', ') as assigned_members
+                     GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) SEPARATOR ', ') as assigned_members
                      FROM schedules s
                      LEFT JOIN notifications n ON s.employee_id = n.employee_id
                      LEFT JOIN members m ON n.member_id = m.id
@@ -40,7 +43,9 @@ $stmt->execute();
 $schedule_result = $stmt->get_result();
 
 // Fetch assigned members with their details
-$assigned_members_query = "SELECT DISTINCT m.full_name, m.membership_type, 
+$assigned_members_query = "SELECT DISTINCT 
+                          CONCAT(m.first_name, ' ', m.last_name) as full_name, 
+                          m.membership_type, 
                           CASE 
                             WHEN EXISTS (
                               SELECT 1 FROM schedules s 
@@ -120,11 +125,13 @@ $members_result = $stmt->get_result();
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-classes-icon.svg" alt="Available Days" class="summary-icon">
                 <div class="summary-number"><?php 
-                    $avail_query = "SELECT COUNT(DISTINCT available_day) as days FROM coach_availability WHERE employee_id = $employee_id";
+                    $avail_query = "SELECT COUNT(DISTINCT day_of_week) as days 
+                                   FROM fitness_classes 
+                                   WHERE trainer_id = $employee_id";
                     $avail_result = $conn->query($avail_query);
                     echo $avail_result->fetch_assoc()['days'];
                 ?></div>
-                <div class="summary-label">Available Days</div>
+                <div class="summary-label">Class Days</div>
             </div>
             <div class="dashboard-card">
                 <img src="../images/icons/dashboard-progress-icon.svg" alt="Total Sessions" class="summary-icon">
@@ -153,21 +160,29 @@ $members_result = $stmt->get_result();
                     </thead>
                     <tbody>
                         <?php
-                        // Get coaches available today
+                        // Get coaches with classes today
                         $today_name = date('l'); // Gets day name (Monday, Tuesday, etc.)
                         $available_coaches_query = "SELECT 
-                            e.full_name,
+                            DISTINCT
+                            CONCAT(e.first_name, ' ', e.last_name) as full_name,
                             e.position,
-                            ca.available_time,
+                            GROUP_CONCAT(
+                                CASE fc.time_slot
+                                    WHEN 'Morning' THEN '7:00 AM - 9:00 AM'
+                                    WHEN 'Afternoon' THEN '2:00 PM - 4:00 PM'
+                                    WHEN 'Evening' THEN '6:00 PM - 8:00 PM'
+                                END
+                                ORDER BY FIELD(fc.time_slot, 'Morning', 'Afternoon', 'Evening')
+                            ) as available_time,
                             e.status
                             FROM employees e
-                            JOIN coach_availability ca ON e.id = ca.employee_id
+                            JOIN fitness_classes fc ON e.id = fc.trainer_id
                             WHERE e.status = 'Active'
-                            AND ca.available_day = ?";
+                            AND fc.day_of_week = ?
+                            GROUP BY e.id, e.first_name, e.last_name, e.position, e.status";
                         
                         $stmt = $conn->prepare($available_coaches_query);
-                        $search_day = "%$today_name%";
-                        $stmt->bind_param("s", $search_day);
+                        $stmt->bind_param("s", $today_name);
                         $stmt->execute();
                         $coaches_result = $stmt->get_result();
 
@@ -176,12 +191,8 @@ $members_result = $stmt->get_result();
                                 echo "<tr>";
                                 echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
                                 echo "<td>" . htmlspecialchars($row['position']) . "</td>";
-                                // Format available times
-                                $times = explode(',', $row['available_time']);
-                                $formatted_times = array_map(function($time) {
-                                    return date('g:i A', strtotime($time));
-                                }, $times);
-                                echo "<td>" . implode(', ', $formatted_times) . "</td>";
+                                // Display available times
+                                echo "<td>" . str_replace(',', ', ', $row['available_time']) . "</td>";
                                 echo "<td><span class='status-active'>Available</span></td>";
                                 echo "</tr>";
                             }

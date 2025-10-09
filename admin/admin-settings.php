@@ -8,13 +8,11 @@
 
 </head>
 <?php
-session_start();
+include '../includes/session_check.php';
 include '../db.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../login.php");
-    exit();
-}
+check_session(['admin']);
+
 
 $admin_id = $_SESSION['user_id'];
 
@@ -25,10 +23,26 @@ if (isset($_SESSION['msg'])) {
     unset($_SESSION['msg']);
 }
 
-// Fetch current admin info
-$result = $conn->query("SELECT * FROM admins WHERE id=$admin_id LIMIT 1");
+// Fetch current admin info using prepared statement to prevent SQL injection
+$stmt = $conn->prepare("SELECT * FROM admins WHERE id = ? LIMIT 1");
+$stmt->bind_param("i", $admin_id);
+$stmt->execute();
+$result = $stmt->get_result();
 $row = $result ? $result->fetch_assoc() : ['name' => '', 'email' => ''];
+$stmt->close();
 ?>
+
+<script>
+    // Always force a reload from the server
+    window.onload = function() {
+        if (!window.location.hash) {
+            window.location = window.location + '#loaded';
+            window.location.reload(true);
+        }
+    };
+</script>
+
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -41,7 +55,7 @@ $row = $result ? $result->fetch_assoc() : ['name' => '', 'email' => ''];
             <li class="active"><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
-            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+            <a href="../logout.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
 

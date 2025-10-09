@@ -102,6 +102,25 @@ $plans = [
             margin-top: 20px;
             border: 1px solid #35373bff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            position: relative;
+        }
+        .back-button {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: #2c3446;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-button:hover {
+            background: #374151;
         }
         .form-header {
             font-size: 2.5em;
@@ -202,8 +221,9 @@ $plans = [
         <div class="logo">NEXUS</div>
         <ul class="nav-menu">
             <li><a href="admin-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
-            <li class="active"><a href="admin-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
             <li><a href="admin-employees.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Employees" class="nav-icon"> Employees</a></li>
+            <li class="active"><a href="admin-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+            <li><a href="admin-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
             <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
@@ -226,11 +246,17 @@ $plans = [
 
         <div class="renewal-form">
             <div class="form-header">Renew Membership Form</div>
+            <a href="admin-members.php" class="back-button">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Members
+            </a>
             <form method="POST" action="">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Full Name</label>
-                        <input type="text" value="<?php echo htmlspecialchars($member['full_name']); ?>" readonly>
+                        <input type="text" value="<?php echo htmlspecialchars($member['first_name'] . ' ' . $member['last_name']); ?>" readonly>
                     </div>
                     <div class="form-group">
                         <label>Member ID</label>
@@ -260,12 +286,26 @@ $plans = [
                     <span class="amount" id="totalAmount">₱350</span>
                     <input type="hidden" name="amount" id="amountInput" value="350">
                 </div>
-                <button type="submit" class="submit-btn">Renew</button>
+                <button type="submit" class="submit-btn" id="renewBtn" <?php echo isset($successMessage) ? 'disabled style="background: #666; cursor: not-allowed;"' : ''; ?>>
+                    <?php echo isset($successMessage) ? 'Membership Renewed' : 'Renew'; ?>
+                </button>
             </form>
         </div>
     </div>
 
     <script>
+    // Prevent form resubmission on page refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
+    // Disable form submission if already successful
+    <?php if (isset($successMessage)): ?>
+    document.querySelector('form').onsubmit = function(e) {
+        e.preventDefault();
+        return false;
+    };
+    <?php endif; ?>
     function updateAmount() {
         const duration = document.getElementById('duration').value;
         const membershipType = document.getElementById('membershipType').value.toLowerCase();

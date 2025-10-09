@@ -1,5 +1,9 @@
 <?php
+include '../includes/session_check.php';
 include '../db.php';
+
+check_session(['admin']);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -9,6 +13,18 @@ include '../db.php';
     <title>Nexus | Admin - Add Member</title>
     <link rel="stylesheet" href="admin.css">
 </head>
+
+<script>
+    // Always force a reload from the server
+    window.onload = function() {
+        if (!window.location.hash) {
+            window.location = window.location + '#loaded';
+            window.location.reload(true);
+        }
+    };
+</script>
+
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -21,7 +37,7 @@ include '../db.php';
             <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
-            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+            <a href="../logout.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
     <!-- Main Content -->
@@ -38,10 +54,14 @@ include '../db.php';
                 <div class="card-header">Add New Member</div>
                 <form method="POST" action="add-member.php" class="member-form" autocomplete="off" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; padding: 20px;">
                     <div class="form-group" style="grid-column: 1">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" required>
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required>
                     </div>
                     <div class="form-group" style="grid-column: 2">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                    <div class="form-group" style="grid-column: 1/3">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required>
                     </div>

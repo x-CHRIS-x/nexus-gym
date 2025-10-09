@@ -1,3 +1,9 @@
+<?php
+require_once '../includes/session_check.php';
+include '../db.php';
+check_session(['member']);
+?>
+
   <!DOCTYPE html>
   <html lang="en">
   <head>

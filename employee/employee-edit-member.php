@@ -60,10 +60,14 @@ $member = $result->fetch_assoc();
                 <form method="POST" action="edit_member.php" class="member-form" autocomplete="off" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; padding: 20px;">
                     <input type="hidden" name="id" value="<?php echo htmlspecialchars($member['id']); ?>">
                     <div class="form-group" style="grid-column: 1">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" value="<?php echo htmlspecialchars($member['full_name']); ?>" required>
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" value="<?php echo htmlspecialchars($member['first_name']); ?>" required>
                     </div>
                     <div class="form-group" style="grid-column: 2">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" value="<?php echo htmlspecialchars($member['last_name']); ?>" required>
+                    </div>
+                    <div class="form-group" style="grid-column: 1/3">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($member['email']); ?>" required>
                     </div>

@@ -1,12 +1,9 @@
 <?php
-session_start();
+include '../includes/session_check.php';
 include '../db.php';
 
-// Check if user is logged in and has appropriate role
-if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'employee' && $_SESSION['role'] !== 'admin')) {
-    header("Location: ../login.php");
-    exit();
-}
+check_session(['admin']);
+
 
 // Pagination settings
 $rows_per_page = 10;
@@ -20,7 +17,7 @@ $total_rows = $count_result->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $rows_per_page);
 
 // Get members with pagination
-$sql = "SELECT id, full_name, email, phone, membership_type, status, membership_end_date FROM members ORDER BY membership_end_date ASC LIMIT $rows_per_page OFFSET $offset";
+$sql = "SELECT id, first_name, last_name, email, phone, membership_type, status, membership_end_date FROM members ORDER BY first_name ASC, last_name ASC LIMIT $rows_per_page OFFSET $offset";
 $result = $conn->query($sql);
 
 // Inline edit logic
@@ -39,6 +36,18 @@ if ($edit_id) {
     <title>Nexus | Admin - Members</title>
     <link rel="stylesheet" href="admin.css">
 </head>
+
+<script>
+    // Always force a reload from the server
+    window.onload = function() {
+        if (!window.location.hash) {
+            window.location = window.location + '#loaded';
+            window.location.reload(true);
+        }
+    };
+</script>
+
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -51,7 +60,7 @@ if ($edit_id) {
             <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
-            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+            <a href="../logout.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
 
@@ -70,8 +79,11 @@ if ($edit_id) {
             <div class="member-table-card">
                 <div class="card-header">Members List</div>
                 <div class="table-controls">
-                    <input type="text" class="search-bar" placeholder="Search members...">
-                    <select class="filter-dropdown">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="Search members...">
+                    <button id="searchBtn" class="search-btn" style="padding: 8px 16px; background: #00c4ff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 0 10px;">
+                        Search
+                    </button>
+                    <select id="statusFilter" class="filter-dropdown">
                         <option value="">All Status</option>
                         <option value="Active">Active</option>
                         <option value="Expired">Expired</option>
@@ -128,7 +140,7 @@ if ($edit_id) {
                                         "background:#22c55e;color:#fff;";
                                     
                                     echo "<tr>
-                                    <td>".$row["full_name"]."</td>
+                                    <td>".$row["first_name"]." ".$row["last_name"]."</td>
                                     <td>".$row["email"]."</td>
                                     <td>".$row["phone"]."</td>
                                     <td>".$row["membership_type"]."</td>
@@ -182,6 +194,86 @@ if ($edit_id) {
     </div>
 
     <script src="../js/pagination.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const statusFilter = document.getElementById('statusFilter');
+            const table = document.querySelector('.members-table');
+            const tableRows = table.getElementsByTagName('tr');
+
+            // Function to perform the search and filter
+            function searchAndFilter() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusTerm = statusFilter.value;
+
+                // Start from 1 to skip header row
+                for (let i = 1; i < tableRows.length; i++) {
+                    const row = tableRows[i];
+                    if (row.cells) { // Check if it's a valid row with cells
+                        const name = row.cells[0].textContent.toLowerCase();
+                        const email = row.cells[1].textContent.toLowerCase();
+                        const phone = row.cells[2].textContent.toLowerCase();
+                        const membershipType = row.cells[3].textContent.toLowerCase();
+                        const status = row.cells[4].textContent.toLowerCase();
+
+                        // Check if row matches both search term and status filter
+                        const matchesSearch = searchTerm === '' || 
+                            name.includes(searchTerm) || 
+                            email.includes(searchTerm) || 
+                            phone.includes(searchTerm) ||
+                            membershipType.includes(searchTerm);
+
+                        const matchesStatus = statusTerm === '' || status.includes(statusTerm.toLowerCase());
+
+                        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+                    }
+                }
+
+                // Update the "showing X of Y entries" text
+                updateEntriesInfo();
+            }
+
+            // Function to update entries info
+            function updateEntriesInfo() {
+                const visibleRows = Array.from(tableRows).slice(1).filter(row => row.style.display !== 'none').length;
+                const totalRows = tableRows.length - 1; // Subtract 1 for header row
+                const paginationInfo = document.querySelector('.pagination-info');
+                if (paginationInfo) {
+                    paginationInfo.textContent = `Showing ${visibleRows} of ${totalRows} members`;
+                }
+            }
+
+            // Search button click event
+            searchBtn.addEventListener('click', searchAndFilter);
+
+            // Search on Enter key
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    searchAndFilter();
+                }
+            });
+
+            // Status filter change event
+            statusFilter.addEventListener('change', searchAndFilter);
+
+            // Add hover effect to search button
+            searchBtn.addEventListener('mouseover', function() {
+                this.style.background = '#0099ff';
+            });
+            searchBtn.addEventListener('mouseout', function() {
+                this.style.background = '#00c4ff';
+            });
+
+            // Add hover effect to search button active state
+            searchBtn.addEventListener('mousedown', function() {
+                this.style.background = '#0088ee';
+            });
+            searchBtn.addEventListener('mouseup', function() {
+                this.style.background = '#00c4ff';
+            });
+        });
+    </script>
 </body>
 </html>
 <?php

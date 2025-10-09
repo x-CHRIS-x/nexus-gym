@@ -1,5 +1,8 @@
 <?php
+require_once '../includes/session_check.php';
 include '../db.php';
+
+check_session(['employee']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,10 +42,14 @@ include '../db.php';
                 <div class="card-header">Add New Member</div>
                 <form method="POST" action="add_member.php" class="member-form" autocomplete="off" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; padding: 20px;">
                     <div class="form-group" style="grid-column: 1">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" name="fullName" required>
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required>
                     </div>
                     <div class="form-group" style="grid-column: 2">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                    <div class="form-group" style="grid-column: 1/3">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required>
                     </div>

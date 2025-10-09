@@ -3,7 +3,8 @@ include '../db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get form data
-    $full_name = $_POST['fullName'];
+    $first_name = $_POST['firstName'];
+    $last_name = $_POST['lastName'];
     $email = $_POST['email'];
     $phone = $_POST['phone'];
     $membership_type = $_POST['membershipType'];
@@ -12,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $subscription_duration = $_POST['subscription_duration'];
 
     // Basic validation
-    if (empty($full_name) || empty($email) || empty($phone) || empty($membership_type) || empty($join_date) || empty($password) || empty($subscription_duration)) {
+    if (empty($first_name) || empty($last_name) || empty($email) || empty($phone) || empty($membership_type) || empty($join_date) || empty($password) || empty($subscription_duration)) {
         $error = "All fields are required!";
     } else {
         // Check if email already exists
@@ -35,11 +36,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $status = 'Active';
 
             // Insert new member using prepared statement
-            $sql = "INSERT INTO members (full_name, email, phone, membership_type, join_date, status, password, membership_end_date) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO members (first_name, last_name, email, phone, membership_type, join_date, status, password, membership_end_date) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssss", $full_name, $email, $phone, $membership_type, $join_date, $status, $hashedPassword, $end_date);
+            $stmt->bind_param("sssssssss", $first_name, $last_name, $email, $phone, $membership_type, $join_date, $status, $hashedPassword, $end_date);
 
             if ($stmt->execute()) {
                 $success = "Member added successfully!";

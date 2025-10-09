@@ -4,14 +4,29 @@ require_once 'db_connection.php';
 function getMemberSubscriptionStatus($memberId) {
     global $conn;
     
-    $query = "SELECT * FROM members WHERE id = ?";
+    $query = "
+        SELECT 
+            CONCAT(first_name, ' ', last_name) as member_name,
+            join_date,
+            membership_end_date,
+            membership_type,
+            CASE 
+                WHEN membership_end_date >= CURDATE() THEN 'active'
+                ELSE 'inactive'
+            END as status
+        FROM members 
+        WHERE id = ?";
+    
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $memberId);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows > 0) {
-        return $result->fetch_assoc();
+        $member = $result->fetch_assoc();
+        $member['days_remaining'] = $member['status'] === 'active' ? 
+            floor((strtotime($member['membership_end_date']) - time()) / (60 * 60 * 24)) : 0;
+        return $member;
     }
     
     return null;

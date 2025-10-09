@@ -1,5 +1,8 @@
 <?php
+include '../includes/session_check.php';
 include '../db.php';
+
+check_session(['admin']);
 
 $sql = "SELECT * FROM members";
 $result = $conn->query($sql);
@@ -13,6 +16,7 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="admin.css">
 
 </head>
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -25,7 +29,7 @@ $result = $conn->query($sql);
             <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
-            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+            <a href="../logout.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
 
@@ -132,25 +136,35 @@ $result = $conn->query($sql);
                 <div class="employee-table-title">Trainer Assignments Today</div>
                 <ul class="list-no-style list-no-padding list-no-margin">
                     <?php
-                    // Get trainers available today
-                    $today_name = date('l'); // Gets day name (Monday, Tuesday, etc.)
-                    $sql = "SELECT DISTINCT e.full_name 
-                           FROM employees e 
-                           JOIN coach_availability ca ON e.id = ca.employee_id 
+                    // Get trainers who have classes scheduled for today's day of the week
+                    $today_day = date('l'); // Gets current day name (Monday, Tuesday, etc.)
+                    $sql = "SELECT DISTINCT CONCAT(e.first_name, ' ', e.last_name) as full_name,
+                                  e.position,
+                                  GROUP_CONCAT(DISTINCT fc.time_slot ORDER BY FIELD(fc.time_slot, 'Morning', 'Afternoon', 'Evening')) as time_slots
+                           FROM employees e
+                           INNER JOIN fitness_classes fc ON e.id = fc.trainer_id
                            WHERE e.status = 'Active' 
-                           AND e.position IN ('Trainer', 'Coach')
-                           AND ca.available_day LIKE '%$today_name%'
-                           ORDER BY e.full_name
-                           LIMIT 5";
-                    $result = $conn->query($sql);
+                           AND (e.position = 'Trainer' OR e.position = 'Coach')
+                           AND fc.day_of_week = ?
+                           GROUP BY e.id
+                           ORDER BY e.first_name, e.last_name";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("s", $today_day);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
                     
                     if ($result->num_rows > 0) {
                         while($row = $result->fetch_assoc()) {
-                            echo "<li class='list-margin-bottom-8'><strong>" . htmlspecialchars($row['full_name']) . "</strong></li>";
+                            $time_slots_text = str_replace(",", ", ", $row['time_slots']);
+                            echo "<li class='list-margin-bottom-8'>";
+                            echo "<strong>" . htmlspecialchars($row['position'] . " " . $row['full_name']) . "</strong><br>";
+                            echo "<small style='color: #8a94a6;'>" . htmlspecialchars($time_slots_text) . "</small>";
+                            echo "</li>";
                         }
                     } else {
                         echo "<li class='list-margin-bottom-8'>No trainers scheduled for today</li>";
                     }
+                    $stmt->close();
                     ?>
                 </ul>
             </div>
@@ -172,7 +186,7 @@ $result = $conn->query($sql);
                     <tbody>
                         <?php
                         // Get recent membership payments
-                        $sql = "SELECT m.full_name, ms.amount_paid, ms.created_at, ms.payment_status 
+                        $sql = "SELECT CONCAT(m.first_name, ' ', m.last_name) as full_name, ms.amount_paid, ms.created_at, ms.payment_status 
                                FROM member_subscriptions ms 
                                JOIN members m ON ms.member_id = m.id 
                                ORDER BY ms.created_at DESC 

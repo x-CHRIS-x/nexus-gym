@@ -2,6 +2,11 @@
 session_start();
 require_once '../includes/db_connection.php';
 require_once '../includes/membership_functions.php';
+require_once '../includes/session_check.php';
+include 'check_membership.php';
+include '../db.php';
+
+check_session(['member']);
 
 if (!isset($_SESSION['member_id'])) {
     header("Location: ../login.php");
@@ -42,6 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
             background-color: #0f0f0f;
             color: #ffffff;
         }
+        /* Override Bootstrap's padding for sidebar navigation */
+        #nexus-sidebar .nav-menu {
+            padding: 0;
+            margin: 0;
+        }
         .main-content {
             background-color: #0f0f0f;
         }
@@ -77,18 +87,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div id="nexus-sidebar" class="sidebar">
         <div class="logo">NEXUS</div>
         <ul class="nav-menu">
-            <li><a href="member-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
-            <li><a href="member-classes.php"><img src="../images/icons/dashboard-classes-icon.svg" alt="Classes" class="nav-icon"> Classes</a></li>
-            <li><a href="member-my-plan.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="My Plan" class="nav-icon"> My Plan</a></li>
-            <li><a href="member-progress.php"><img src="../images/icons/dashboard-progress-icon.svg" alt="Progress" class="nav-icon"> Progress</a></li>
-            <li class="active"><a href="member-subscription.php"><img src="../images/icons/dashboard-payment-icon.svg" alt="Subscription" class="nav-icon"> Subscription</a></li>
-            <li><a href="member-profile.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Profile" class="nav-icon"> Profile</a></li>
+            <?php
+            $menu_items = getSidebarMenu($conn, $_SESSION['member_id']);
+            foreach ($menu_items as $item) {
+                $current_page = basename($_SERVER['PHP_SELF']);
+                $active = ($current_page === basename($item['href'])) ? ' class="active"' : '';
+                echo "<li{$active}><a href=\"{$item['href']}\"><img src=\"../images/icons/{$item['icon']}\" class=\"nav-icon\"> {$item['text']}</a></li>";
+            }
+            ?>
         </ul>
         <div class="logout-container">
-            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" class="nav-icon"> Logout</a>
         </div>
     </div>
 
@@ -105,12 +117,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
         <?php echo $message; ?>
 
         <!-- Current Subscription Status -->
-        <div class="subscription-info">
+        <div class="subscription-info p-4 rounded mb-4">
             <h3>Current Subscription</h3>
             <?php if ($currentSubscription): ?>
-                <p><strong>Status:</strong> <?php echo formatSubscriptionStatus($currentSubscription['status']); ?></p>
+                <div class="mt-3">
+                    <p><strong>Member:</strong> <?php echo htmlspecialchars($currentSubscription['member_name']); ?></p>
+                    <p><strong>Status:</strong> <?php echo formatSubscriptionStatus($currentSubscription['status']); ?></p>
+                    <p><strong>Member Since:</strong> <?php echo date('F d, Y', strtotime($currentSubscription['join_date'])); ?></p>
+                    <p><strong>Membership Type:</strong> <?php echo htmlspecialchars($currentSubscription['membership_type']); ?></p>
+                    <p><strong>End Date:</strong> <?php echo date('F d, Y', strtotime($currentSubscription['membership_end_date'])); ?></p>
+                    <?php if ($currentSubscription['status'] === 'active'): ?>
+                        <p><strong>Days Remaining:</strong> <?php echo $currentSubscription['days_remaining']; ?> days</p>
+                    <?php endif; ?>
+                </div>
             <?php else: ?>
-                <p>No active subscription found. Please renew your membership to continue.</p>
+                <p class="mt-3">No subscription information found. Please renew your membership to continue.</p>
             <?php endif; ?>
         </div>
 

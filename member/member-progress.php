@@ -5,6 +5,8 @@ ini_set('display_errors', 1);
 
 session_start();
 include '../db.php';
+require_once '../includes/session_check.php';
+check_session(['member']);
 
 // fallback for session key differences
 $member_id = isset($_SESSION['member_id']) ? (int)$_SESSION['member_id'] : (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0);

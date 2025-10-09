@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 28, 2025 at 03:06 AM
+-- Generation Time: Oct 09, 2025 at 01:11 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,7 +39,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`id`, `username`, `password`, `email`) VALUES
-(1, 'ADMIN', '$2y$10$2UxIjQ7rsWsksF/UQ39sDOGA.UUAztAqeRjELxfCO6nqyKduMuutS', 'admin@gmail.com');
+(2, 'admin', '$2y$10$2IS/WSMoNVyU4bCsMqnm4eb.wfV0l74y9YfBsJqXaMeCAlf5wBW/y', 'admin@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -58,37 +58,31 @@ CREATE TABLE `coach_availability` (
 -- Dumping data for table `coach_availability`
 --
 
-INSERT INTO `coach_availability` (`employee_id`, `available_day`, `available_time`) VALUES
--- Coach 1: Chris Ledama
-(1, 'Monday', '07:00'),
-(1, 'Tuesday', '09:00'),
-(1, 'Thursday', '14:00'),
-(1, 'Friday', '06:00'),
--- Coach 2: Cris John Resonable
-(2, 'Monday', '14:00'),
-(2, 'Wednesday', '06:00'),
-(2, 'Thursday', '10:00'),
-(2, 'Saturday', '08:00'),
--- Coach 3: Gian Opsirc
-(3, 'Tuesday', '14:00'),
-(3, 'Wednesday', '10:00'),
-(3, 'Friday', '14:00'),
-(3, 'Sunday', '08:00'),
--- Coach 4: John Rique
-(4, 'Monday', '10:00'),
-(4, 'Wednesday', '14:00'),
-(4, 'Saturday', '06:00'),
-(4, 'Sunday', '14:00'),
--- Coach 5: Charles Selwyn
-(5, 'Tuesday', '06:00'),
-(5, 'Thursday', '06:00'),
-(5, 'Friday', '10:00'),
-(5, 'Saturday', '14:00'),
--- Coach 6: Marc Jorem
-(6, 'Monday', '06:00'),
-(6, 'Wednesday', '14:00'),
-(6, 'Friday', '10:00'),
-(6, 'Sunday', '08:00');
+INSERT INTO `coach_availability` (`id`, `employee_id`, `available_day`, `available_time`) VALUES
+(81, 1, 'Monday', '6:00 AM - 2:00 PM'),
+(82, 1, 'Tuesday', '10:00 AM - 6:00 PM'),
+(83, 1, 'Thursday', '2:00 PM - 10:00 PM'),
+(84, 1, 'Friday', '6:00 AM - 2:00 PM'),
+(85, 2, 'Monday', '2:00 PM - 10:00 PM'),
+(86, 2, 'Wednesday', '6:00 AM - 2:00 PM'),
+(87, 2, 'Thursday', '10:00 AM - 6:00 PM'),
+(88, 2, 'Saturday', '8:00 AM - 4:00 PM'),
+(89, 3, 'Tuesday', '2:00 PM - 10:00 PM'),
+(90, 3, 'Wednesday', '10:00 AM - 6:00 PM'),
+(91, 3, 'Friday', '2:00 PM - 10:00 PM'),
+(92, 3, 'Sunday', '8:00 AM - 4:00 PM'),
+(93, 4, 'Monday', '10:00 AM - 6:00 PM'),
+(94, 4, 'Wednesday', '2:00 PM - 10:00 PM'),
+(95, 4, 'Saturday', '6:00 AM - 2:00 PM'),
+(96, 4, 'Sunday', '2:00 PM - 10:00 PM'),
+(97, 5, 'Tuesday', '6:00 AM - 2:00 PM'),
+(98, 5, 'Thursday', '6:00 AM - 2:00 PM'),
+(99, 5, 'Friday', '10:00 AM - 6:00 PM'),
+(100, 5, 'Saturday', '2:00 PM - 10:00 PM'),
+(101, 6, 'Monday', '6:00 AM - 2:00 PM'),
+(102, 6, 'Wednesday', '2:00 PM - 10:00 PM'),
+(103, 6, 'Friday', '10:00 AM - 6:00 PM'),
+(104, 6, 'Sunday', '8:00 AM - 4:00 PM');
 
 -- --------------------------------------------------------
 
@@ -98,7 +92,8 @@ INSERT INTO `coach_availability` (`employee_id`, `available_day`, `available_tim
 
 CREATE TABLE `employees` (
   `id` int(11) NOT NULL,
-  `full_name` varchar(100) NOT NULL,
+  `first_name` varchar(50) NOT NULL,
+  `last_name` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
@@ -111,14 +106,13 @@ CREATE TABLE `employees` (
 -- Dumping data for table `employees`
 --
 
-INSERT INTO `employees` (`id`, `full_name`, `email`, `password`, `phone`, `position`, `date_hired`, `status`) VALUES
-(1, 'John Chris P. Ledama', 'johnchrisledama83@gmail.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09612099217', 'Trainer', '2024-08-30', 'Active'),
-(2, 'employee2', 'employee@gmail.com', '$2y$10$UHhdOMXwWyVANifp6DHMq.LiPP1hXhhA4QdWT.O065ho0hzTfuEM2', '1234567890', 'Trainer', '2024-05-20', 'Active'),
-(3, 'Charles Selwyn Lim', 'charles@gmail.com', '$2y$10$CI/jTlQSgXSTJrKuJJtLiuxV8eZMdO0w0PH.pASap9pp9hhdWQuc2', '049494994', 'Trainer', '2025-09-04', 'Active'),
-(4, 'Coach Gian', 'gian@gmail.com', '$2y$10$3fueGAeWyLQX3xjIsrjDDuC2mwrekHnBeGiqwzJ1qjVasMjRO6ADq', '094484884', 'Coach', '2025-09-05', 'Active'),
-(5, 'Coach Lim', 'lim4@gmail.com', '$2y$10$j9exL2c5ypzsrNS9j0mZ1uAV89YW/g/59opw1TX9VJ9DSiF66A88O', '09494994', 'Trainer', '2025-09-02', 'Active'),
-(6, 'Coach Chris', 'coachchris@gmail.com', '$2y$10$6ToC.vdhgWvoPCw0beCBA.Cglt6DUQD0OejnuQx8AJGu0V/mj2RCW', '09292929', 'Trainer', '2025-09-11', 'Active'),
-(7, 'Coach Jorem', 'jorem@gmail.com', '$2y$10$D5wb0rBaxDBjwLm51iRCwO7uvMQFa.wnpjHyrjdad4SgXcHV90vJK', '095959', 'Coach', '2025-09-17', 'Active');
+INSERT INTO `employees` (`id`, `first_name`, `last_name`, `email`, `password`, `phone`, `position`, `date_hired`, `status`) VALUES
+(1, 'Chris', 'Ledama', 'chris.ledama@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09612099217', 'Head Coach', '2025-01-15', 'Active'),
+(2, 'Cris John', 'Resonable', 'crisjohn.r@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09234567890', 'Fitness Coach', '2025-02-01', 'Active'),
+(3, 'Gian', 'Opsirc', 'gian.o@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09345678901', 'Strength Coach', '2025-02-15', 'Active'),
+(4, 'John Rique', 'Barnachea', 'johnrique.b@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09456789012', 'Yoga Coach', '2025-03-01', 'Active'),
+(5, 'Charles Selwyn', 'Lim', 'charles.lim@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09567890123', 'CrossFit Coach', '2025-03-15', 'Active'),
+(6, 'Marc Jorem', 'Luchavez', 'marcjorem.l@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09678901234', 'Senior Coach', '2025-04-01', 'Active');
 
 -- --------------------------------------------------------
 
@@ -128,7 +122,8 @@ INSERT INTO `employees` (`id`, `full_name`, `email`, `password`, `phone`, `posit
 
 CREATE TABLE `members` (
   `id` int(11) NOT NULL,
-  `full_name` varchar(100) NOT NULL,
+  `first_name` varchar(50) NOT NULL,
+  `last_name` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
@@ -142,13 +137,12 @@ CREATE TABLE `members` (
 -- Dumping data for table `members`
 --
 
-INSERT INTO `members` (`id`, `full_name`, `email`, `password`, `phone`, `membership_type`, `status`, `join_date`, `membership_end_date`) VALUES
-(1, 'Chris Ledama', 'chris.l@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09111222333', 'Premium', 'Active', '2025-01-01', '2026-01-01'),
-(2, 'Cris John M. Resonable', 'crisjohn.r@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09222333444', 'Standard', 'Active', '2025-02-01', '2025-11-01'),
-(3, 'Gian Opsirc', 'gian.o@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09333444555', 'Premium', 'Active', '2025-03-01', '2026-03-01'),
-(4, 'John Rique Barnachea', 'johnrique.b@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09444555666', 'Standard', 'Active', '2025-04-01', '2025-10-01'),
-(5, 'Lim Charles Selwyn', 'charles.l@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09555666777', 'Premium', 'Active', '2025-05-01', '2026-05-01'),
-(6, 'Luchavez Marc Jorem Caadan', 'marcjorem.l@nexusgym.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09666777888', 'Standard', 'Active', '2025-06-01', '2025-12-01');
+INSERT INTO `members` (`id`, `first_name`, `last_name`, `email`, `password`, `phone`, `membership_type`, `status`, `join_date`, `membership_end_date`) VALUES
+(1, 'Juan', 'Dela Cruz', 'juan.dc@email.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09111222333', 'Premium', 'Active', '2025-01-01', '2026-01-01'),
+(2, 'Maria', 'Santos', 'maria.s@email.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09222333444', 'Standard', 'Active', '2025-02-01', '2025-11-01'),
+(3, 'Pedro', 'Reyes', 'pedro.r@email.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09333444555', 'Premium', 'Active', '2025-03-01', '2026-03-01'),
+(4, 'Ana', 'Lopez', 'ana.l@email.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09444555666', 'Standard', 'Active', '2025-04-01', '2025-10-01'),
+(5, 'Miguel', 'Garcia', 'miguel.g@email.com', '$2y$10$WnRSFnIdoN7DMAp6iEUAKeOvJ1HW32SAzHUQoNn0e3F6rC1JlDJnG', '09555666777', 'Premium', 'Active', '2025-05-01', '2026-05-01');
 
 -- --------------------------------------------------------
 
@@ -201,6 +195,17 @@ CREATE TABLE `member_progress` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `member_progress`
+--
+
+INSERT INTO `member_progress` (`id`, `member_id`, `bench_press`, `incline_press`, `decline_press`, `chest_fly`, `overhead_press`, `lateral_raises`, `deadlift`, `lat_pulldown`, `weight_now`, `weight_before`, `squat`, `leg_press`, `romanian_deadlift`, `rdl`, `updated_at`) VALUES
+(2, 1, '185 lbs', '135 lbs', '155 lbs', '30 lbs', '95 lbs', '20 lbs', 225.00, 160.00, 75.00, 78.00, '225 lbs', '400 lbs', '185 lbs', '185 lbs', '2025-10-09 08:00:00'),
+(3, 2, '95 lbs', '75 lbs', '85 lbs', '15 lbs', '45 lbs', '10 lbs', 135.00, 100.00, 55.00, 58.00, '135 lbs', '250 lbs', '115 lbs', '115 lbs', '2025-10-09 08:00:00'),
+(4, 3, '225 lbs', '185 lbs', '205 lbs', '40 lbs', '135 lbs', '25 lbs', 315.00, 200.00, 85.00, 88.00, '315 lbs', '500 lbs', '275 lbs', '275 lbs', '2025-10-09 08:00:00'),
+(5, 4, '85 lbs', '65 lbs', '75 lbs', '12 lbs', '35 lbs', '8 lbs', 115.00, 80.00, 52.00, 55.00, '125 lbs', '225 lbs', '95 lbs', '95 lbs', '2025-10-09 08:00:00'),
+(6, 5, '205 lbs', '165 lbs', '185 lbs', '35 lbs', '115 lbs', '22 lbs', 275.00, 180.00, 82.00, 85.00, '275 lbs', '450 lbs', '225 lbs', '225 lbs', '2025-10-09 08:00:00');
+
 -- --------------------------------------------------------
 
 --
@@ -218,6 +223,17 @@ CREATE TABLE `member_subscriptions` (
   `amount_paid` decimal(10,2) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `member_subscriptions`
+--
+
+INSERT INTO `member_subscriptions` (`id`, `member_id`, `plan_id`, `start_date`, `end_date`, `status`, `payment_status`, `amount_paid`, `created_at`) VALUES
+(1, 1, 4, '2025-01-01', '2026-01-01', 'active', 'paid', 500.00, '2025-01-01 09:00:00'),
+(2, 2, 1, '2025-02-01', '2025-11-01', 'active', 'paid', 50.00, '2025-02-01 09:00:00'),
+(3, 3, 4, '2025-03-01', '2026-03-01', 'active', 'paid', 500.00, '2025-03-01 09:00:00'),
+(4, 4, 1, '2025-04-01', '2025-10-01', 'active', 'paid', 50.00, '2025-04-01 09:00:00'),
+(5, 5, 4, '2025-05-01', '2026-05-01', 'active', 'paid', 500.00, '2025-05-01 09:00:00');
 
 --
 -- Triggers `member_subscriptions`
@@ -263,6 +279,22 @@ CREATE TABLE `notifications` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `employee_id`, `member_id`, `message`, `created_at`) VALUES
+(34, 1, 1, 'Congratulations! You hit a new PR on bench press: 185 lbs', '2025-10-09 09:15:00'),
+(35, 2, 2, 'Your next training session is scheduled for tomorrow at 3:00 PM', '2025-10-09 10:00:00'),
+(36, 3, 3, 'Great progress on your deadlift form today!', '2025-10-09 11:30:00'),
+(37, 4, 4, 'Your yoga session for tomorrow is confirmed', '2025-10-09 12:00:00'),
+(38, 5, 5, 'Time to update your fitness progress - book a measurement session', '2025-10-09 13:00:00'),
+(39, 6, 1, 'Your membership renewal is due in 30 days', '2025-10-09 14:00:00'),
+(40, 1, 2, 'Don\'t forget your protein intake after today\'s intense session', '2025-10-09 15:00:00'),
+(41, 2, 3, 'Your cardio endurance is improving! Keep it up!', '2025-10-09 16:00:00'),
+(42, 3, 4, 'New personal best in squats - 125 lbs!', '2025-10-09 17:00:00'),
+(43, 4, 5, 'Your flexibility has improved significantly this month', '2025-10-09 18:00:00');
+
 -- --------------------------------------------------------
 
 --
@@ -276,6 +308,24 @@ CREATE TABLE `schedules` (
   `shift_time` varchar(50) NOT NULL,
   `job_role` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `schedules`
+--
+
+INSERT INTO `schedules` (`id`, `employee_id`, `date`, `shift_time`, `job_role`) VALUES
+(1, 1, '2025-10-09', '6:00 AM - 2:00 PM', 'Head Coach - General Training'),
+(2, 2, '2025-10-09', '2:00 PM - 10:00 PM', 'Fitness Coach - Cardio Classes'),
+(3, 3, '2025-10-09', '10:00 AM - 6:00 PM', 'Strength Coach - Weight Training'),
+(4, 4, '2025-10-09', '2:00 PM - 10:00 PM', 'Yoga Coach - Evening Classes'),
+(5, 5, '2025-10-09', '6:00 AM - 2:00 PM', 'CrossFit Coach - Morning WOD'),
+(6, 6, '2025-10-09', '10:00 AM - 6:00 PM', 'Senior Coach - Personal Training'),
+(7, 1, '2025-10-10', '10:00 AM - 6:00 PM', 'Head Coach - Staff Training'),
+(8, 2, '2025-10-10', '6:00 AM - 2:00 PM', 'Fitness Coach - Morning Classes'),
+(9, 3, '2025-10-10', '2:00 PM - 10:00 PM', 'Strength Coach - Evening Sessions'),
+(10, 4, '2025-10-10', '10:00 AM - 6:00 PM', 'Yoga Coach - Midday Classes'),
+(11, 5, '2025-10-10', '6:00 AM - 2:00 PM', 'CrossFit Coach - Group Training'),
+(12, 6, '2025-10-10', '2:00 PM - 10:00 PM', 'Senior Coach - Advanced Training');
 
 -- --------------------------------------------------------
 
@@ -294,8 +344,18 @@ CREATE TABLE `trainer_assignments` (
 --
 
 INSERT INTO `trainer_assignments` (`id`, `trainer_id`, `plan_day`) VALUES
-(1, 4, 'Monday'),
-(2, 4, 'Monday');
+(3, 1, 'Monday - Strength Training'),
+(4, 1, 'Thursday - HIIT'),
+(5, 2, 'Tuesday - Cardio'),
+(6, 2, 'Friday - Endurance'),
+(7, 3, 'Wednesday - Power Lifting'),
+(8, 3, 'Saturday - Olympic Lifts'),
+(9, 4, 'Monday - Morning Yoga'),
+(10, 4, 'Thursday - Evening Yoga'),
+(11, 5, 'Tuesday - CrossFit WOD'),
+(12, 5, 'Friday - Team Training'),
+(13, 6, 'Wednesday - Advanced Training'),
+(14, 6, 'Saturday - Specialized Programs');
 
 -- --------------------------------------------------------
 
@@ -312,6 +372,22 @@ CREATE TABLE `training_sessions` (
   `status` enum('scheduled','completed','cancelled') DEFAULT 'scheduled',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `training_sessions`
+--
+
+INSERT INTO `training_sessions` (`id`, `member_id`, `trainer_id`, `session_date`, `session_time`, `status`, `created_at`) VALUES
+(4, 1, 1, '2025-10-09', '09:00:00', 'completed', '2025-10-08 15:00:00'),
+(5, 2, 2, '2025-10-09', '15:00:00', 'completed', '2025-10-08 15:00:00'),
+(6, 3, 3, '2025-10-09', '11:00:00', 'completed', '2025-10-08 15:00:00'),
+(7, 4, 4, '2025-10-09', '16:00:00', 'completed', '2025-10-08 15:00:00'),
+(8, 5, 5, '2025-10-09', '08:00:00', 'completed', '2025-10-08 15:00:00'),
+(9, 1, 6, '2025-10-10', '14:00:00', 'scheduled', '2025-10-09 10:00:00'),
+(10, 2, 1, '2025-10-10', '10:00:00', 'scheduled', '2025-10-09 10:00:00'),
+(11, 3, 2, '2025-10-10', '13:00:00', 'scheduled', '2025-10-09 10:00:00'),
+(12, 4, 3, '2025-10-10', '17:00:00', 'scheduled', '2025-10-09 10:00:00'),
+(13, 5, 4, '2025-10-10', '11:00:00', 'scheduled', '2025-10-09 10:00:00');
 
 --
 -- Indexes for dumped tables
@@ -404,25 +480,25 @@ ALTER TABLE `training_sessions`
 -- AUTO_INCREMENT for table `admins`
 --
 ALTER TABLE `admins`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `coach_availability`
 --
 ALTER TABLE `coach_availability`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `membership_plans`
@@ -434,37 +510,37 @@ ALTER TABLE `membership_plans`
 -- AUTO_INCREMENT for table `member_progress`
 --
 ALTER TABLE `member_progress`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `member_subscriptions`
 --
 ALTER TABLE `member_subscriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT for table `schedules`
 --
 ALTER TABLE `schedules`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `trainer_assignments`
 --
 ALTER TABLE `trainer_assignments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `training_sessions`
 --
 ALTER TABLE `training_sessions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Constraints for dumped tables

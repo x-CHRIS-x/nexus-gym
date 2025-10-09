@@ -1,5 +1,9 @@
 <?php
+require_once '../includes/session_check.php';
 include '../db.php';
+
+// Check if user is logged in and has employee role
+check_session(['employee', 'admin']);
 
 // Pagination settings
 $rows_per_page = 10;
@@ -13,7 +17,7 @@ $total_rows = $count_result->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $rows_per_page);
 
 // Get members with pagination
-$sql = "SELECT id, full_name, email, phone, membership_type, status, membership_end_date FROM members ORDER BY membership_end_date ASC LIMIT $rows_per_page OFFSET $offset";
+$sql = "SELECT id, first_name, last_name, email, phone, membership_type, status, membership_end_date FROM members ORDER BY first_name ASC, last_name ASC LIMIT $rows_per_page OFFSET $offset";
 $result = $conn->query($sql);
 
 // Inline edit logic
@@ -63,8 +67,11 @@ if ($edit_id) {
             <div class="member-table-card">
                 <div class="card-header">Members List</div>
                 <div class="table-controls">
-                    <input type="text" class="search-bar" placeholder="Search members...">
-                    <select class="filter-dropdown">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="Search members...">
+                    <button id="searchBtn" class="search-btn" style="padding: 8px 16px; background: #00c4ff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 0 10px;">
+                        Search
+                    </button>
+                    <select id="statusFilter" class="filter-dropdown">
                         <option value="">All Status</option>
                         <option value="Active">Active</option>
                         <option value="Expired">Expired</option>
@@ -120,7 +127,7 @@ if ($edit_id) {
                                         "background:#22c55e;color:#fff;";
                                     
                                     echo "<tr>
-                                    <td>".$row["full_name"]."</td>
+                                    <td>".$row["first_name"]." ".$row["last_name"]."</td>
                                     <td>".$row["email"]."</td>
                                     <td>".$row["phone"]."</td>
                                     <td>".$row["membership_type"]."</td>
@@ -180,6 +187,91 @@ if ($edit_id) {
     </div>
 
     <script src="../js/pagination.js"></script>
+    <script>
+        // Prevent back button after logout
+        window.onload = function() {
+            if(typeof history.pushState === "function") {
+                history.pushState("jibberish", null, null);
+                window.onpopstate = function () {
+                    history.pushState('newjibberish', null, null);
+                };
+            }
+        }
+        
+        // Handle when the page is accessed after logout
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!document.cookie.includes('PHPSESSID')) {
+                window.location.replace('../login.php');
+            }
+        });
+
+        // Search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const statusFilter = document.getElementById('statusFilter');
+            const table = document.querySelector('.members-table');
+            const tableRows = table.getElementsByTagName('tr');
+
+            // Function to perform the search and filter
+            function searchAndFilter() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusTerm = statusFilter.value;
+
+                // Start from 1 to skip header row
+                for (let i = 1; i < tableRows.length; i++) {
+                    const row = tableRows[i];
+                    if (row.cells) { // Check if it's a valid row with cells
+                        const name = row.cells[0].textContent.toLowerCase();
+                        const email = row.cells[1].textContent.toLowerCase();
+                        const phone = row.cells[2].textContent.toLowerCase();
+                        const membershipType = row.cells[3].textContent.toLowerCase();
+                        const status = row.cells[4].textContent.toLowerCase();
+
+                        // Check if row matches both search term and status filter
+                        const matchesSearch = searchTerm === '' || 
+                            name.includes(searchTerm) || 
+                            email.includes(searchTerm) || 
+                            phone.includes(searchTerm) ||
+                            membershipType.includes(searchTerm);
+
+                        const matchesStatus = statusTerm === '' || status.includes(statusTerm.toLowerCase());
+
+                        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+                    }
+                }
+            }
+
+            // Search button click event
+            searchBtn.addEventListener('click', searchAndFilter);
+
+            // Search on Enter key
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    searchAndFilter();
+                }
+            });
+
+            // Status filter change event
+            statusFilter.addEventListener('change', searchAndFilter);
+
+            // Add hover effect to search button
+            searchBtn.addEventListener('mouseover', function() {
+                this.style.background = '#0099ff';
+            });
+            searchBtn.addEventListener('mouseout', function() {
+                this.style.background = '#00c4ff';
+            });
+
+            // Add hover effect to search button active state
+            searchBtn.addEventListener('mousedown', function() {
+                this.style.background = '#0088ee';
+            });
+            searchBtn.addEventListener('mouseup', function() {
+                this.style.background = '#00c4ff';
+            });
+        });
+    </script>
 </body>
 </html>
 <?php

@@ -1,5 +1,8 @@
 <?php
+include '../includes/session_check.php';
 include '../db.php';
+
+check_session(['admin']);
 
 // Pagination settings
 $rows_per_page = 10;
@@ -13,7 +16,7 @@ $total_rows = $count_result->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $rows_per_page);
 
 // Get employees with pagination
-$sql = "SELECT * FROM employees LIMIT $rows_per_page OFFSET $offset";
+$sql = "SELECT * FROM employees ORDER BY first_name ASC, last_name ASC LIMIT $rows_per_page OFFSET $offset";
 $result = $conn->query($sql);
 
 // Inline edit logic
@@ -32,6 +35,18 @@ if ($edit_id) {
     <title>Nexus | Admin - Employees</title>
     <link rel="stylesheet" href="admin.css">
 </head>
+
+<script>
+    // Always force a reload from the server
+    window.onload = function() {
+        if (!window.location.hash) {
+            window.location = window.location + '#loaded';
+            window.location.reload(true);
+        }
+    };
+</script>
+
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
@@ -44,7 +59,7 @@ if ($edit_id) {
             <li><a href="admin-settings.php"><img src="../images/icons/dashboard-settings-icon.svg" alt="Settings" class="nav-icon"> Settings</a></li>
         </ul>
         <div class="logout-container">
-            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+            <a href="../logout.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
         </div>
     </div>
     
@@ -66,8 +81,12 @@ if ($edit_id) {
                         <input type="hidden" name="id" value="<?php echo $edit_id; ?>">
                     <?php endif; ?>
                     <div class="form-group">
-                        <label for="empFullName">Full Name</label>
-                        <input type="text" id="empFullName" name="empFullName" value="<?php echo $edit_row ? ($edit_row['full_name']) : ''; ?>" required>
+                        <label for="empFirstName">First Name</label>
+                        <input type="text" id="empFirstName" name="empFirstName" value="<?php echo $edit_row ? ($edit_row['first_name']) : ''; ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empLastName">Last Name</label>
+                        <input type="text" id="empLastName" name="empLastName" value="<?php echo $edit_row ? ($edit_row['last_name']) : ''; ?>" required>
                     </div>
                     <?php
                     if (isset($_GET['error'])) {
@@ -112,8 +131,11 @@ if ($edit_id) {
             <div class="member-table-card">
                 <div class="card-header">Employees List</div>
                 <div class="table-controls">
-                    <input type="text" class="search-bar" placeholder="Search employees...">
-                    <select class="filter-dropdown">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="Search employees...">
+                    <button id="searchBtn" class="search-btn" style="padding: 8px 16px; background: #00c4ff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 0 10px;">
+                        Search
+                    </button>
+                    <select id="statusFilter" class="filter-dropdown">
                         <option value="">All Status</option>
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
@@ -123,7 +145,7 @@ if ($edit_id) {
                     <table class="members-table">
                         <thead>
                                 <th>Employee ID</th>
-                                <th>Full Name</th>
+                                <th>Employee Name</th>
                                 <th>Email</th>
                                 <th>Phone Number</th>
                                 <th>Position</th>
@@ -140,7 +162,7 @@ if ($edit_id) {
                                     echo "
                                     <tr>
                                         <td>".$row["id"]."</td>
-                                        <td>".$row["full_name"]."</td>
+                                        <td>".$row["first_name"]." ".$row["last_name"]."</td>
                                         <td>".$row["email"]."</td>
                                         <td>".$row["phone"]."</td>
                                         <td>".$row["position"]."</td>
@@ -192,6 +214,108 @@ if ($edit_id) {
     </div>
 
     <script src="../js/pagination.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const statusFilter = document.getElementById('statusFilter');
+            const table = document.querySelector('.members-table');
+            const tableRows = table.getElementsByTagName('tr');
+
+            // Function to perform the search and filter
+            function searchAndFilter() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const statusTerm = statusFilter.value;
+
+                // Start from 1 to skip header row
+                for (let i = 1; i < tableRows.length; i++) {
+                    const row = tableRows[i];
+                    if (row.cells) { // Check if it's a valid row with cells
+                        const id = row.cells[0].textContent.toLowerCase();
+                        const name = row.cells[1].textContent.toLowerCase();
+                        const email = row.cells[2].textContent.toLowerCase();
+                        const phone = row.cells[3].textContent.toLowerCase();
+                        const position = row.cells[4].textContent.toLowerCase();
+                        const dateHired = row.cells[5].textContent.toLowerCase();
+                        const status = row.cells[6].textContent.toLowerCase();
+
+                        // Check if row matches both search term and status filter
+                        const matchesSearch = searchTerm === '' || 
+                            id.includes(searchTerm) ||
+                            name.includes(searchTerm) || 
+                            email.includes(searchTerm) || 
+                            phone.includes(searchTerm) ||
+                            position.includes(searchTerm) ||
+                            dateHired.includes(searchTerm);
+
+                        const matchesStatus = statusTerm === '' || status.includes(statusTerm.toLowerCase());
+
+                        row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+                    }
+                }
+
+                // Update the "showing X of Y entries" text
+                updateEntriesInfo();
+            }
+
+            // Function to update entries info
+            function updateEntriesInfo() {
+                const visibleRows = Array.from(tableRows).slice(1).filter(row => row.style.display !== 'none').length;
+                const totalRows = tableRows.length - 1; // Subtract 1 for header row
+                const paginationInfo = document.querySelector('.pagination-info');
+                if (paginationInfo) {
+                    paginationInfo.textContent = `Showing ${visibleRows} of ${totalRows} employees`;
+                }
+            }
+
+            // Search button click event
+            searchBtn.addEventListener('click', searchAndFilter);
+
+            // Search on Enter key
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    searchAndFilter();
+                }
+            });
+
+            // Status filter change event
+            statusFilter.addEventListener('change', searchAndFilter);
+
+            // Add hover effect to search button
+            searchBtn.addEventListener('mouseover', function() {
+                this.style.background = '#0099ff';
+            });
+            searchBtn.addEventListener('mouseout', function() {
+                this.style.background = '#00c4ff';
+            });
+
+            // Add hover effect to search button active state
+            searchBtn.addEventListener('mousedown', function() {
+                this.style.background = '#0088ee';
+            });
+            searchBtn.addEventListener('mouseup', function() {
+                this.style.background = '#00c4ff';
+            });
+
+            // Clear Form button functionality
+            const clearFormBtn = document.querySelector('.btn-clear');
+            if (clearFormBtn) {
+                clearFormBtn.addEventListener('click', function() {
+                    const form = document.querySelector('.member-form');
+                    const inputs = form.querySelectorAll('input:not([type="hidden"])');
+                    const selects = form.querySelectorAll('select');
+                    
+                    inputs.forEach(input => {
+                        input.value = '';
+                    });
+                    
+                    selects.forEach(select => {
+                        select.selectedIndex = 0;
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>
 <?php

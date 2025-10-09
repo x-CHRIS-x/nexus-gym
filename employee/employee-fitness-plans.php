@@ -1,23 +1,34 @@
 <?php
+require_once '../includes/session_check.php';
 include '../db.php';
-session_start();
+
+check_session(['employee']);
 
 // Logged-in employee ID
 $employee_id = $_SESSION['employee_id'] ?? 1;
 
-// Fetch coaches (only employees with "Coach" in their name)
+// Fetch coaches and their class schedules
 $coachQuery = "
-    SELECT e.id, e.full_name, e.position, e.status,
-           (SELECT COUNT(*) FROM coach_availability ca WHERE ca.employee_id = e.id) AS availability_count
+    SELECT 
+        e.id, 
+        CONCAT(e.first_name, ' ', e.last_name) as full_name, 
+        e.position, 
+        e.status,
+        (SELECT COUNT(DISTINCT day_of_week) 
+         FROM fitness_classes fc 
+         WHERE fc.trainer_id = e.id) AS availability_count
     FROM employees e
-    WHERE e.status = 'Active' AND e.full_name LIKE '%Coach%'
-    ORDER BY e.full_name ASC
+    WHERE e.status = 'Active' 
+    AND (e.position = 'Coach' OR e.position = 'Trainer')
+    ORDER BY e.first_name ASC, e.last_name ASC
 ";
 $coachResult = $conn->query($coachQuery);
 
 // Fetch notifications for this employee
 $notifQuery = "
-    SELECT n.id, n.message, n.created_at, m.full_name AS member_name, e.full_name AS employee_name
+    SELECT n.id, n.message, n.created_at, 
+           CONCAT(m.first_name, ' ', m.last_name) AS member_name, 
+           CONCAT(e.first_name, ' ', e.last_name) AS employee_name
     FROM notifications n
     LEFT JOIN members m ON n.member_id = m.id
     LEFT JOIN employees e ON n.employee_id = e.id
@@ -61,6 +72,40 @@ $stmtNotif->close();
     display: none;
     z-index: 9999;
     font-size: 14px;
+}
+
+/* Schedule popup specific styles */
+.schedule-popup {
+    color: #fff;
+}
+
+.schedule-popup #coach-schedule::-webkit-scrollbar {
+    width: 8px;
+}
+
+.schedule-popup #coach-schedule::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+}
+
+.schedule-popup #coach-schedule::-webkit-scrollbar-thumb {
+    background: #00c4ff;
+    border-radius: 4px;
+}
+
+.schedule-popup button:hover {
+    background: #0099ff !important;
+}
+
+/* Overlay for popup */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
 }
 </style>
 </head>
@@ -141,7 +186,7 @@ $stmtNotif->close();
                 <td>
                   <button class="toggle-btn <?= $coach['availability_count'] > 0 ? 'available' : 'not-available'; ?>" 
                           data-coach="<?= $coach['id']; ?>">
-                    <?= $coach['availability_count'] > 0 ? 'Available' : 'Not Available'; ?>
+                    <?= $coach['availability_count'] > 0 ? 'View Schedule (' . $coach['availability_count'] . ' days)' : 'No Classes Scheduled'; ?>
                   </button>
                 </td>
               </tr>
@@ -174,18 +219,65 @@ $stmtNotif->close();
 </div>
 
 <script>
-// Toggle availability via AJAX
+// Show coach schedule when clicking the availability button
 $('.toggle-btn').click(function() {
     let btn = $(this);
     let coach_id = btn.data('coach');
+    let coach_name = btn.closest('tr').find('td:first').text();
 
-    $.post('toggle_availability.php', { coach_id: coach_id }, function(data) {
-        if(data.status === 'available'){
-            btn.text('Available').removeClass('not-available').addClass('available');
-        } else {
-            btn.text('Not Available').removeClass('available').addClass('not-available');
+    // Remove any existing popups
+    $('.schedule-popup').remove();
+
+    // Create a popup to show the coach's schedule
+    let popup = $('<div class="schedule-popup" style="width: 300px; background: #1e2a38; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.5); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; border-radius: 8px;">' +
+        '<h3 style="margin-top: 0; color: #fff; margin-bottom: 15px;">' + coach_name + '\'s Schedule</h3>' +
+        '<div id="coach-schedule" style="max-height: 300px; overflow-y: auto;"></div>' +
+        '<button onclick="$(\'.schedule-popup\').remove()" style="width: 100%; margin-top: 15px; padding: 8px; background: #00c4ff; border: none; color: white; border-radius: 4px; cursor: pointer;">Close</button>' +
+        '</div>');
+
+    $('body').append(popup);
+
+    // Add loading indicator
+    $('#coach-schedule').html('<p style="color: #fff; text-align: center;">Loading schedule...</p>');
+
+    // Fetch and display the coach's schedule
+    $.ajax({
+        url: 'get_coach_schedule.php',
+        data: { coach_id: coach_id },
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            let scheduleHtml = '';
+            if (data.schedule && data.schedule.length > 0) {
+                // Sort days of the week
+                const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                data.schedule.sort((a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day));
+                
+                data.schedule.forEach(function(class_info) {
+                    scheduleHtml += '<div style="margin-bottom: 15px; color: #fff; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 4px;">' +
+                        '<div style="font-weight: bold; color: #00c4ff; margin-bottom: 5px;">' + class_info.day + '</div>' +
+                        '<div>' + class_info.time + '</div>' +
+                        '<div style="color: #8a94a6;">' + class_info.class_name + '</div>' +
+                        '</div>';
+                });
+            } else {
+                scheduleHtml = '<p style="color: #fff; text-align: center;">No classes scheduled</p>';
+            }
+            $('#coach-schedule').html(scheduleHtml);
+        },
+        error: function(xhr, status, error) {
+            $('#coach-schedule').html('<p style="color: #ff4444; text-align: center;">Error loading schedule: ' + error + '</p>');
+            console.error('Error fetching schedule:', error);
         }
-    }, 'json');
+    });
+
+    // Close popup when clicking outside
+    $(document).mouseup(function(e) {
+        var container = $('.schedule-popup');
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            container.remove();
+        }
+    });
 });
 
 // Notification auto-refresh

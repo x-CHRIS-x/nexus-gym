@@ -3,7 +3,8 @@ include '../db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id'])) {
     $id = intval($_POST['id']);
-    $name = ($_POST['empFullName']);
+    $firstName = ($_POST['empFirstName']);
+    $lastName = ($_POST['empLastName']);
     $email = ($_POST['empEmail']);
     $phone = ($_POST['empPhone']);
     $position = ($_POST['empPosition']);
@@ -14,9 +15,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['id'])) {
     // Only update password if provided
     if (!empty($password)) {
         $hashed = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "UPDATE employees SET full_name='$name', email='$email', phone='$phone', position='$position', date_hired='$date_hired', status='$status', password='$hashed' WHERE id=$id";
+        $sql = "UPDATE employees SET first_name='$firstName', last_name='$lastName', email='$email', phone='$phone', position='$position', date_hired='$date_hired', status='$status', password='$hashed' WHERE id=$id";
     } else {
-        $sql = "UPDATE employees SET full_name='$name', email='$email', phone='$phone', position='$position', date_hired='$date_hired', status='$status' WHERE id=$id";
+        $sql = "UPDATE employees SET first_name='$firstName', last_name='$lastName', email='$email', phone='$phone', position='$position', date_hired='$date_hired', status='$status' WHERE id=$id";
     }
     $conn->query($sql);
     header("Location: admin-employees.php");

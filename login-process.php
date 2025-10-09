@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php'; // your database connection
+include 'db.php'; // Database connection
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role     = $_POST['role']; // admin, member, employee
@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // store role-specific info
             if ($role === "member") {
                 $_SESSION['member_id']    = $row['id'];
-                $_SESSION['member_name']  = $row['full_name']; // change if column is different
+                $_SESSION['member_name']  = $row['first_name'] . ' ' . $row['last_name'];
                 $_SESSION['member_email'] = $row['email'];
                 header("Location: member/member-dashboard.php");
             } elseif ($role === "admin") {
@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header("Location: admin/admin-dashboard.php");
             } elseif ($role === "employee") {
                 $_SESSION['employee_id']   = $row['id'];
-                $_SESSION['employee_name'] = $row['full_name'];
+                $_SESSION['employee_name'] = $row['first_name'] . ' ' . $row['last_name'];
                 header("Location: employee/employee-dashboard.php");
             }
             exit();

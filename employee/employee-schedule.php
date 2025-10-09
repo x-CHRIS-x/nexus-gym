@@ -1,6 +1,8 @@
 <?php
+require_once '../includes/session_check.php';
 include '../db.php';
-session_start();
+
+check_session(['employee']);
 
 // Handle reset roster
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_roster'])) {
@@ -8,35 +10,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_roster'])) {
     $success = "Roster has been reset successfully.";
 }
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['assign_schedule'])) {
-    $employee_id = intval($_POST['employee_id']);
-    $shift_time  = $conn->real_escape_string($_POST['shift_time']);
-    $job_role    = $conn->real_escape_string($_POST['job_role']);
-    $date        = $conn->real_escape_string($_POST['date']);
-
-    // Prevent duplicate shift for the same employee on the same date
-    $check = $conn->query("SELECT * FROM schedules WHERE employee_id=$employee_id AND date='$date'");
-    if ($check->num_rows == 0) {
-        $sql = "INSERT INTO schedules (employee_id, shift_time, job_role, date) 
-                VALUES ($employee_id, '$shift_time', '$job_role', '$date')";
-        if (!$conn->query($sql)) {
-            $error = "Error assigning schedule: " . $conn->error;
-        }
-    } else {
-        $error = "This employee already has a shift assigned on this date.";
-    }
-}
+// Form submission is now handled in add_class.php
 
 // Fetch all employees
-$employees = $conn->query("SELECT id, full_name FROM employees");
+$employees = $conn->query("SELECT id, CONCAT(first_name, ' ', last_name) as full_name FROM employees");
 
-// Fetch all schedules
+// Fetch all fitness classes with schedules
 $schedules = $conn->query("
-    SELECT s.date, s.shift_time, e.full_name AS in_charge, s.job_role
-    FROM schedules s
-    INNER JOIN employees e ON s.employee_id = e.id
-    ORDER BY s.date ASC, s.shift_time ASC
+    SELECT 
+        fc.day_of_week,
+        fc.time_slot,
+        CONCAT(e.first_name, ' ', e.last_name) AS in_charge,
+        e.position as job_role,
+        fc.name as class_name,
+        CASE 
+            WHEN fc.time_slot = 'Morning' THEN '7:00 AM - 9:00 AM'
+            WHEN fc.time_slot = 'Afternoon' THEN '2:00 PM - 4:00 PM'
+            WHEN fc.time_slot = 'Evening' THEN '6:00 PM - 8:00 PM'
+        END as shift_time
+    FROM fitness_classes fc
+    INNER JOIN employees e ON fc.trainer_id = e.id
+    WHERE e.status = 'Active'
+    ORDER BY 
+        FIELD(fc.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
+        FIELD(fc.time_slot, 'Morning', 'Afternoon', 'Evening')
 ");
 ?>
 
@@ -98,44 +95,72 @@ $schedules = $conn->query("
         <p style="color:green; padding:10px;"><?php echo $success; ?></p>
     <?php endif; ?>
 
-    <!-- Assign Employee Schedule -->
+    <!-- Add New Class -->
     <div class="card card-margin-bottom">
-        <div class="employee-table-title">Assign Employee to Shift</div>
+        <div class="employee-table-title">Add New Class</div>
         <?php if(isset($error)): ?>
             <p style="color:red; padding:10px;"><?php echo $error; ?></p>
         <?php endif; ?>
-        <form method="POST">
-            <label>Date:</label>
-            <input type="date" name="date" required>
+        <form method="POST" action="add_class.php">
+            <label>Day of Week:</label>
+            <select name="day_of_week" required>
+                <option value="">-- Select Day --</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+            </select>
 
-            <label>Shift Time:</label>
-            <input type="text" name="shift_time" placeholder="e.g. 08:00 - 12:00" required>
+            <label>Time Slot:</label>
+            <select name="time_slot" required>
+                <option value="">-- Select Time --</option>
+                <option value="Morning">Morning (7:00 AM - 9:00 AM)</option>
+                <option value="Afternoon">Afternoon (2:00 PM - 4:00 PM)</option>
+                <option value="Evening">Evening (6:00 PM - 8:00 PM)</option>
+            </select>
 
-            <label>Employee:</label>
-            <select name="employee_id" required>
-                <option value="">-- Select Employee --</option>
-                <?php while($emp = $employees->fetch_assoc()): ?>
-                    <option value="<?php echo $emp['id']; ?>"><?php echo htmlspecialchars($emp['full_name']); ?></option>
+            <label>Class Name:</label>
+            <input type="text" name="class_name" placeholder="e.g. Yoga, HIIT, Strength Training" required>
+
+            <label>Trainer:</label>
+            <select name="trainer_id" required>
+                <option value="">-- Select Trainer --</option>
+                <?php 
+                $trainers = $conn->query("SELECT id, CONCAT(first_name, ' ', last_name) as full_name 
+                                        FROM employees 
+                                        WHERE status = 'Active' 
+                                        AND (position = 'Trainer' OR position = 'Coach')
+                                        ORDER BY first_name, last_name");
+                while($trainer = $trainers->fetch_assoc()): 
+                ?>
+                    <option value="<?php echo $trainer['id']; ?>"><?php echo htmlspecialchars($trainer['full_name']); ?></option>
                 <?php endwhile; ?>
             </select>
 
-            <label>Job Role:</label>
-            <input type="text" name="job_role" placeholder="e.g. Trainer" required>
+            <label>Class Description:</label>
+            <textarea name="description" placeholder="Brief description of the class" required></textarea>
 
-            <button type="submit" name="assign_schedule">Assign</button>
+            <label>Capacity:</label>
+            <input type="number" name="capacity" min="1" max="30" value="15" required>
+
+            <button type="submit" name="add_class">Add Class</button>
         </form>
     </div>
 
-    <!-- Duty Roster -->
+    <!-- Class Schedule -->
     <div class="card card-margin-bottom">
-        <div class="employee-table-title">Duty Roster</div>
+        <div class="employee-table-title">Class Schedule</div>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Shift</th>
-                        <th>In-Charge</th>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th>Class</th>
+                        <th>Trainer</th>
                         <th>Role</th>
                     </tr>
                 </thead>
@@ -143,15 +168,16 @@ $schedules = $conn->query("
                     <?php if ($schedules && $schedules->num_rows > 0): ?>
                         <?php while($row = $schedules->fetch_assoc()): ?>
                             <tr>
-                                <td><?php echo date("M d, Y", strtotime($row['date'])); ?></td>
+                                <td><?php echo htmlspecialchars($row['day_of_week']); ?></td>
                                 <td><?php echo htmlspecialchars($row['shift_time']); ?></td>
+                                <td><?php echo htmlspecialchars($row['class_name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['in_charge']); ?></td>
                                 <td><?php echo htmlspecialchars($row['job_role']); ?></td>
                             </tr>
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="4">No schedules found.</td>
+                            <td colspan="5">No classes scheduled.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
