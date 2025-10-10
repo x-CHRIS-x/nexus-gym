@@ -24,35 +24,75 @@ function fetch_single_value($stmt, $key, $default = 0) {
 }
 
 /* ---------------------------
-Classes Today
+Classes Today (Count from Today's Class Bookings)
 --------------------------- */
-$schedule_query = "SELECT COUNT(*) as class_count FROM schedules 
-                WHERE employee_id = ? AND date = ? AND job_role LIKE '%trainer%'";
-$stmt = $conn->prepare($schedule_query);
+$today_day = date('l'); // current day name
+$classes_today_query = "SELECT COUNT(*) as total_classes
+                        FROM fitness_classes
+                        WHERE day_of_week = ?";
+$stmt = $conn->prepare($classes_today_query);
 if ($stmt) {
-    $stmt->bind_param("is", $employee_id, $today);
+    $stmt->bind_param("s", $today_day);
     $stmt->execute();
-    $classes_today = fetch_single_value($stmt, 'class_count', 0);
+    $res = $stmt->get_result();
+    $classes_today = ($res && $row = $res->fetch_assoc()) ? (int)$row['total_classes'] : 0;
     $stmt->close();
 } else {
-    error_log("Prepare failed (classes_today): " . $conn->error);
+    error_log("Prepare failed (classes_today_query): " . $conn->error);
     $classes_today = 0;
 }
 
 /* ---------------------------
-Assigned Members (notifications.message = 'hired')
+Assigned Employees in Roster (Modified)
 --------------------------- */
-$members_query = "SELECT COUNT(DISTINCT member_id) as member_count FROM notifications 
-                WHERE employee_id = ? AND message = 'hired'";
-$stmt = $conn->prepare($members_query);
+$assigned_members_query = "SELECT COUNT(DISTINCT employee_id) AS assigned_count 
+                           FROM schedules";
+$stmt = $conn->prepare($assigned_members_query);
 if ($stmt) {
-    $stmt->bind_param("i", $employee_id);
     $stmt->execute();
-    $assigned_members = fetch_single_value($stmt, 'member_count', 0);
+    $assigned_members = fetch_single_value($stmt, 'assigned_count', 0);
     $stmt->close();
 } else {
-    error_log("Prepare failed (assigned_members): " . $conn->error);
+    error_log("Prepare failed (assigned_members_query): " . $conn->error);
     $assigned_members = 0;
+}
+
+/* ---------------------------
+Total Sessions (Updated to count all member attendances)
+--------------------------- */
+$total_sessions_query = "SELECT COUNT(*) as total FROM member_attendance";
+$stmt = $conn->prepare($total_sessions_query);
+if ($stmt) {
+    $stmt->execute();
+    $sessions_result = $stmt->get_result();
+    if ($sessions_result && $row = $sessions_result->fetch_assoc()) {
+        $total_sessions = (int) $row['total'];
+    } else {
+        $total_sessions = 0;
+    }
+    $stmt->close();
+} else {
+    error_log("Prepare failed (total_sessions_query): " . $conn->error);
+    $total_sessions = 0;
+}
+
+/* ---------------------------
+Total Members (instead of Class Days)
+--------------------------- */
+$members_query = "SELECT COUNT(*) as total_members FROM members";
+$stmt = $conn->prepare($members_query);
+if ($stmt) {
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res && $row = $res->fetch_assoc()) {
+        $class_days = (int) $row['total_members']; // reuse $class_days variable
+    } else {
+        $class_days = 0;
+    }
+    $stmt->close();
+} else {
+    error_log("Prepare failed (members_query): " . $conn->error);
+    $class_days = 0;
 }
 
 /* ---------------------------
@@ -76,48 +116,6 @@ if ($stmt) {
     $stmt->close();
 } else {
     error_log("Prepare failed (upcoming_schedule): " . $conn->error);
-}
-
-/* ---------------------------
-Available Days (from fitness_classes)
---------------------------- */
-$avail_query = "SELECT COUNT(DISTINCT day_of_week) as days 
-            FROM fitness_classes 
-            WHERE trainer_id = ?";
-$stmt = $conn->prepare($avail_query);
-if ($stmt) {
-    $stmt->bind_param("i", $employee_id);
-    $stmt->execute();
-    $avail_result = $stmt->get_result();
-    if ($avail_result && $row = $avail_result->fetch_assoc()) {
-        $class_days = (int) $row['days'];
-    } else {
-        $class_days = 0;
-    }
-    $stmt->close();
-} else {
-    error_log("Prepare failed (avail_query): " . $conn->error);
-    $class_days = 0;
-}
-
-/* ---------------------------
-Total Sessions (from schedules)
---------------------------- */
-$sessions_query = "SELECT COUNT(*) as total FROM schedules WHERE employee_id = ?";
-$stmt = $conn->prepare($sessions_query);
-if ($stmt) {
-    $stmt->bind_param("i", $employee_id);
-    $stmt->execute();
-    $sessions_result = $stmt->get_result();
-    if ($sessions_result && $row = $sessions_result->fetch_assoc()) {
-        $total_sessions = (int) $row['total'];
-    } else {
-        $total_sessions = 0;
-    }
-    $stmt->close();
-} else {
-    error_log("Prepare failed (sessions_query): " . $conn->error);
-    $total_sessions = 0;
 }
 
 /* ---------------------------
@@ -156,6 +154,7 @@ function shift_label_to_time($shift) {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -204,8 +203,8 @@ function shift_label_to_time($shift) {
 function updateDateTime() {
     const now = new Date();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const dateStr = now.toLocaleDateString(undefined, options);
     const timeStr = now.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const dateStr = now.toLocaleDateString(undefined, options);
     document.getElementById('dashboard-datetime').textContent = `${dateStr} | ${timeStr}`;
 }
 setInterval(updateDateTime, 1000);
@@ -222,12 +221,12 @@ updateDateTime();
     <div class="dashboard-card">
         <img src="../images/icons/dashboard-members-icon.svg" alt="Assigned Members" class="summary-icon">
         <div class="summary-number"><?php echo htmlspecialchars($assigned_members); ?></div>
-        <div class="summary-label">Assigned Members</div>
+        <div class="summary-label">Assigned Employee</div>
     </div>
     <div class="dashboard-card">
-        <img src="../images/icons/dashboard-classes-icon.svg" alt="Available Days" class="summary-icon">
+        <img src="../images/icons/dashboard-classes-icon.svg" alt="Total Members" class="summary-icon">
         <div class="summary-number"><?php echo htmlspecialchars($class_days); ?></div>
-        <div class="summary-label">Class Days</div>
+        <div class="summary-label">Total Members</div>
     </div>
     <div class="dashboard-card">
         <img src="../images/icons/dashboard-progress-icon.svg" alt="Total Sessions" class="summary-icon">
@@ -252,7 +251,6 @@ updateDateTime();
             </thead>
             <tbody>
                 <?php
-                $today_day = date('l'); // Gets current day name
                 $classes_query = "SELECT 
                     fc.id,
                     fc.name,
@@ -326,6 +324,7 @@ updateDateTime();
         </div>
     </div>
 </div>
+
 <!-- Available Coaches View (View-Only) -->
 <div class="card" style="margin-top: 15px;">
     <div class="employee-table-title">Available Coaches</div>
