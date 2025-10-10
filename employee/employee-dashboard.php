@@ -126,7 +126,9 @@ Duty Roster Today (grouped by shift)
 $roster_query = "SELECT s.shift_time, s.job_role, e.first_name, e.last_name
                  FROM schedules s
                  INNER JOIN employees e ON s.employee_id = e.id
-                 WHERE s.date = ?
+                 WHERE s.date = ? 
+                 AND e.position NOT IN ('Trainer', 'Coach')
+                 AND s.job_role NOT IN ('Trainer', 'Coach')
                  ORDER BY FIELD(s.shift_time, 'Morning','Afternoon','Night'), e.first_name, e.last_name";
 $stmt = $conn->prepare($roster_query);
 $roster_by_shift = ['Morning'=>[], 'Afternoon'=>[], 'Night'=>[]];
@@ -234,9 +236,73 @@ updateDateTime();
     </div>
 </div>
 
-<!-- Duty Roster - Grouped by Shift -->
+<!-- Today's Class Bookings -->
 <div class="card" style="margin-top: 15px;">
-    <div class="employee-table-title">Today's Duty Roster (<?php echo date('l, F d, Y'); ?>)</div>
+    <div class="employee-table-title">Today's Class Bookings (<?php echo date('l, F d, Y'); ?>)</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Class Name</th>
+                    <th>Trainer</th>
+                    <th>Bookings</th>
+                    <th>Capacity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $today_day = date('l'); // Gets current day name
+                $classes_query = "SELECT 
+                    fc.id,
+                    fc.name,
+                    fc.time_slot,
+                    fc.capacity,
+                    CONCAT(e.first_name, ' ', e.last_name) as trainer_name,
+                    COUNT(cb.id) as current_bookings
+                    FROM fitness_classes fc
+                    LEFT JOIN employees e ON fc.trainer_id = e.id
+                    LEFT JOIN class_bookings cb ON fc.id = cb.class_id 
+                        AND cb.booking_date = CURDATE()
+                        AND cb.status = 'booked'
+                    WHERE fc.day_of_week = ?
+                    GROUP BY fc.id, fc.name, fc.time_slot, fc.capacity, trainer_name
+                    ORDER BY FIELD(fc.time_slot, 'Morning', 'Afternoon', 'Evening')";
+                
+                $stmt = $conn->prepare($classes_query);
+                $stmt->bind_param("s", $today_day);
+                $stmt->execute();
+                $classes_result = $stmt->get_result();
+
+                if ($classes_result->num_rows > 0) {
+                    while($row = $classes_result->fetch_assoc()) {
+                        $time_slot = '';
+                        switch($row['time_slot']) {
+                            case 'Morning': $time_slot = '7:00 AM - 9:00 AM'; break;
+                            case 'Afternoon': $time_slot = '2:00 PM - 4:00 PM'; break;
+                            case 'Evening': $time_slot = '6:00 PM - 8:00 PM'; break;
+                        }
+                        echo "<tr>
+                                <td>{$time_slot}</td>
+                                <td>{$row['name']}</td>
+                                <td>{$row['trainer_name']}</td>
+                                <td>{$row['current_bookings']}</td>
+                                <td>{$row['capacity']}</td>
+                            </tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='5'>No classes scheduled for today</td></tr>";
+                }
+                $stmt->close();
+                ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Staff Duty Roster - Non-Training Staff -->
+<div class="card" style="margin-top: 15px;">
+    <div class="employee-table-title">Staff Duty Roster (<?php echo date('l, F d, Y'); ?>)</div>
     <div style="padding:12px;">
         <div class="roster-grid">
             <?php foreach (['Morning','Afternoon','Night'] as $shift): ?>
