@@ -1,5 +1,5 @@
 <?php
-include '../includes/session_check.php';
+require_once '../includes/session_check.php';
 include '../db.php';
 
 check_session(['admin']);
@@ -119,18 +119,17 @@ $result = $conn->query($sql);
                 <div class="employee-table-title">Attendance Today</div>
                 <div class="attendance-today-number">
                     <?php
-                    // Get count of today's training sessions
+                    // Get count of today's member attendance
                     $today = date('Y-m-d');
-                    $sql = "SELECT COUNT(*) as total_sessions 
-                           FROM training_sessions 
-                           WHERE session_date = '$today' 
-                           AND status = 'completed'";
+                    $sql = "SELECT COUNT(*) as total_attendance 
+                           FROM member_attendance 
+                           WHERE session_date = '$today'";
                     $result = $conn->query($sql);
                     $row = $result->fetch_assoc();
-                    echo $row['total_sessions'] ?? 0;
+                    echo $row['total_attendance'] ?? 0;
                     ?>
                 </div>
-                <div class="attendance-today-label">Check-ins</div>
+                <div class="attendance-today-label">Member Check-ins Today</div>
             </div>
             <div class="card card-flex-2 card-min-width-260">
                 <div class="employee-table-title">Trainer Assignments Today</div>

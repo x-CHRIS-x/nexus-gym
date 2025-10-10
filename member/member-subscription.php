@@ -126,13 +126,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
                     <p><strong>Member Since:</strong> <?php echo date('F d, Y', strtotime($currentSubscription['join_date'])); ?></p>
                     <p><strong>Membership Type:</strong> <?php echo htmlspecialchars($currentSubscription['membership_type']); ?></p>
                     <p><strong>End Date:</strong> <?php echo date('F d, Y', strtotime($currentSubscription['membership_end_date'])); ?></p>
-                    <?php if ($currentSubscription['status'] === 'active'): ?>
+                    <?php if ($currentSubscription['status'] === 'Active'): ?>
                         <p><strong>Days Remaining:</strong> <?php echo $currentSubscription['days_remaining']; ?> days</p>
+                        <button type="button" class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            Cancel Subscription
+                        </button>
+                    <?php elseif ($currentSubscription['status'] === 'Expired'): ?>
+                        <div class="alert alert-danger mt-3">
+                            Your membership has expired. Please select a plan below to renew.
+                        </div>
                     <?php endif; ?>
                 </div>
             <?php else: ?>
                 <p class="mt-3">No subscription information found. Please renew your membership to continue.</p>
             <?php endif; ?>
+        </div>
+
+        <!-- Cancel Subscription Modal -->
+        <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content bg-dark text-white">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title" id="cancelModalLabel">Cancel Subscription</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to cancel your subscription? This action cannot be undone.</p>
+                        <ul>
+                            <li>Your access will be revoked immediately</li>
+                            <li>No refunds will be provided for the remaining period</li>
+                            <li>You can reactivate by purchasing a new subscription</li>
+                        </ul>
+                        <form action="cancel-subscription.php" method="POST">
+                            <div class="modal-footer border-secondary">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Plans -->

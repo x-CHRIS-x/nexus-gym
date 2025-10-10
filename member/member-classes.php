@@ -152,7 +152,187 @@ $stmt->close();
 <link rel="stylesheet" href="member.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
-/* ... same CSS as your original code ... */
+    .day-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .day-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        background: #2d3748;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .day-btn:hover {
+        background: #4a5568;
+    }
+
+    .day-btn.active {
+        background: #e53e3e;
+    }
+
+    .class-card {
+        background: #2d3748;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .class-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .class-name {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: white;
+    }
+
+    .class-time {
+        color: #a0aec0;
+    }
+
+    .class-description {
+        color: #a0aec0;
+        margin-bottom: 15px;
+    }
+
+    .class-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .trainer-info {
+        color: white;
+    }
+
+    .trainer-position {
+        color: #a0aec0;
+        font-size: 0.9rem;
+    }
+
+    .booking-section {
+        text-align: right;
+    }
+
+    .avail-label {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .avail-yes {
+        background: #2f855a;
+        color: white;
+    }
+
+    .avail-no {
+        background: #c53030;
+        color: white;
+    }
+
+    .btn-book {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        background: #e53e3e;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-book:hover {
+        background: #c53030;
+    }
+
+    .btn-book:disabled {
+        background: #718096;
+        cursor: not-allowed;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #2d3748;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 500px;
+        position: relative;
+    }
+
+    .close {
+        position: absolute;
+        right: 20px;
+        top: 10px;
+        font-size: 28px;
+        cursor: pointer;
+        color: #a0aec0;
+    }
+
+    .booking-form {
+        margin-top: 20px;
+    }
+
+    .booking-form button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 20px;
+        background: #e53e3e;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .booking-form button:hover {
+        background: #c53030;
+    }
+
+    .msg-success {
+        background: #2f855a;
+        color: white;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    #classInfo {
+        color: white;
+        line-height: 1.6;
+    }
+
+    #classInfo div {
+        margin-bottom: 8px;
+    }
+
+    .modal h2 {
+        color: white;
+        margin-bottom: 20px;
+    }
 </style>
 </head>
 <body>
