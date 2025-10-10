@@ -1,267 +1,310 @@
 <?php
+// employee-dashboard.php
 include '../includes/session_check.php';
 include '../db.php';
 
 check_session(['employee']);
 
+// Use logged in employee id if available
+$employee_id = isset($_SESSION['employee_id']) ? (int)$_SESSION['employee_id'] : 1;
 
-// Get employee ID from session (you'll need to set this during login)
-$employee_id = 1; // Temporarily hardcoded, should come from $_SESSION['employee_id']
-
-// Fetch counts for summary cards
 $today = date('Y-m-d');
 
-// Count scheduled classes/sessions for today
+/**
+ * Helper: safe fetch single value from prepared statement
+ * $stmt should be a prepared & executed mysqli_stmt that returns a result set.
+ */
+function fetch_single_value($stmt, $key, $default = 0) {
+    if (!$stmt) return $default;
+    $res = $stmt->get_result();
+    if ($res && $row = $res->fetch_assoc()) {
+        return isset($row[$key]) ? $row[$key] : $default;
+    }
+    return $default;
+}
+
+/* ---------------------------
+Classes Today
+--------------------------- */
 $schedule_query = "SELECT COUNT(*) as class_count FROM schedules 
-                  WHERE employee_id = ? AND date = ? AND job_role LIKE '%trainer%'";
+                WHERE employee_id = ? AND date = ? AND job_role LIKE '%trainer%'";
 $stmt = $conn->prepare($schedule_query);
-$stmt->bind_param("is", $employee_id, $today);
-$stmt->execute();
-$classes_today = $stmt->get_result()->fetch_assoc()['class_count'];
+if ($stmt) {
+    $stmt->bind_param("is", $employee_id, $today);
+    $stmt->execute();
+    $classes_today = fetch_single_value($stmt, 'class_count', 0);
+    $stmt->close();
+} else {
+    error_log("Prepare failed (classes_today): " . $conn->error);
+    $classes_today = 0;
+}
 
-// Count assigned members (from notifications table where message = 'hired')
+/* ---------------------------
+Assigned Members (notifications.message = 'hired')
+--------------------------- */
 $members_query = "SELECT COUNT(DISTINCT member_id) as member_count FROM notifications 
-                 WHERE employee_id = ? AND message = 'hired'";
+                WHERE employee_id = ? AND message = 'hired'";
 $stmt = $conn->prepare($members_query);
-$stmt->bind_param("i", $employee_id);
-$stmt->execute();
-$assigned_members = $stmt->get_result()->fetch_assoc()['member_count'];
+if ($stmt) {
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $assigned_members = fetch_single_value($stmt, 'member_count', 0);
+    $stmt->close();
+} else {
+    error_log("Prepare failed (assigned_members): " . $conn->error);
+    $assigned_members = 0;
+}
 
-// Fetch upcoming schedule
-$upcoming_schedule = "SELECT s.date, s.shift_time, s.job_role, 
-                     GROUP_CONCAT(CONCAT(m.first_name, ' ', m.last_name) SEPARATOR ', ') as assigned_members
-                     FROM schedules s
-                     LEFT JOIN notifications n ON s.employee_id = n.employee_id
-                     LEFT JOIN members m ON n.member_id = m.id
-                     WHERE s.employee_id = ? AND s.date >= CURRENT_DATE()
-                     GROUP BY s.id
-                     ORDER BY s.date, s.shift_time
-                     LIMIT 4";
+/* ---------------------------
+Upcoming Schedule (limit 4)
+--------------------------- */
+$upcoming_schedule = "SELECT s.id, s.date, s.shift_time, s.job_role, 
+                    GROUP_CONCAT(DISTINCT CONCAT(m.first_name, ' ', m.last_name) SEPARATOR ', ') as assigned_members
+                    FROM schedules s
+                    LEFT JOIN notifications n ON s.employee_id = n.employee_id
+                    LEFT JOIN members m ON n.member_id = m.id
+                    WHERE s.employee_id = ? AND s.date >= CURRENT_DATE()
+                    GROUP BY s.id, s.date, s.shift_time, s.job_role
+                    ORDER BY s.date, s.shift_time
+                    LIMIT 4";
 $stmt = $conn->prepare($upcoming_schedule);
-$stmt->bind_param("i", $employee_id);
-$stmt->execute();
-$schedule_result = $stmt->get_result();
+$schedule_result = false;
+if ($stmt) {
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $schedule_result = $stmt->get_result();
+    $stmt->close();
+} else {
+    error_log("Prepare failed (upcoming_schedule): " . $conn->error);
+}
 
-// Fetch assigned members with their details
-$assigned_members_query = "SELECT DISTINCT 
-                          CONCAT(m.first_name, ' ', m.last_name) as full_name, 
-                          m.membership_type, 
-                          CASE 
-                            WHEN EXISTS (
-                              SELECT 1 FROM schedules s 
-                              WHERE s.employee_id = n.employee_id 
-                              AND s.date = CURRENT_DATE
-                            ) THEN 'Present'
-                            ELSE 'Absent'
-                          END as attendance
-                          FROM notifications n
-                          JOIN members m ON n.member_id = m.id
-                          WHERE n.employee_id = ? AND n.message = 'hired'";
-$stmt = $conn->prepare($assigned_members_query);
-$stmt->bind_param("i", $employee_id);
-$stmt->execute();
-$members_result = $stmt->get_result();
+/* ---------------------------
+Available Days (from fitness_classes)
+--------------------------- */
+$avail_query = "SELECT COUNT(DISTINCT day_of_week) as days 
+            FROM fitness_classes 
+            WHERE trainer_id = ?";
+$stmt = $conn->prepare($avail_query);
+if ($stmt) {
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $avail_result = $stmt->get_result();
+    if ($avail_result && $row = $avail_result->fetch_assoc()) {
+        $class_days = (int) $row['days'];
+    } else {
+        $class_days = 0;
+    }
+    $stmt->close();
+} else {
+    error_log("Prepare failed (avail_query): " . $conn->error);
+    $class_days = 0;
+}
+
+/* ---------------------------
+Total Sessions (from schedules)
+--------------------------- */
+$sessions_query = "SELECT COUNT(*) as total FROM schedules WHERE employee_id = ?";
+$stmt = $conn->prepare($sessions_query);
+if ($stmt) {
+    $stmt->bind_param("i", $employee_id);
+    $stmt->execute();
+    $sessions_result = $stmt->get_result();
+    if ($sessions_result && $row = $sessions_result->fetch_assoc()) {
+        $total_sessions = (int) $row['total'];
+    } else {
+        $total_sessions = 0;
+    }
+    $stmt->close();
+} else {
+    error_log("Prepare failed (sessions_query): " . $conn->error);
+    $total_sessions = 0;
+}
+
+/* ---------------------------
+Duty Roster Today (grouped by shift)
+--------------------------- */
+$roster_query = "SELECT s.shift_time, s.job_role, e.first_name, e.last_name
+                 FROM schedules s
+                 INNER JOIN employees e ON s.employee_id = e.id
+                 WHERE s.date = ?
+                 ORDER BY FIELD(s.shift_time, 'Morning','Afternoon','Night'), e.first_name, e.last_name";
+$stmt = $conn->prepare($roster_query);
+$roster_by_shift = ['Morning'=>[], 'Afternoon'=>[], 'Night'=>[]];
+if ($stmt) {
+    $stmt->bind_param("s", $today);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            $shift = $row['shift_time'];
+            if (!isset($roster_by_shift[$shift])) $roster_by_shift[$shift] = [];
+            $roster_by_shift[$shift][] = $row;
+        }
+    }
+    $stmt->close();
+}
+
+// Helper: map shift label -> human readable time
+function shift_label_to_time($shift) {
+    switch ($shift) {
+        case 'Morning': return '6:00 AM - 12:00 PM';
+        case 'Afternoon': return '1:00 PM - 6:00 PM';
+        case 'Night': return '6:00 PM - 12:00 AM';
+        default: return $shift;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus | Employee Dashboard</title>
-    <link rel="stylesheet" href="employee.css">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus | Employee Dashboard</title>
+<link rel="stylesheet" href="employee.css">
+<style>
+/* small additions */
+.status-active { color: green; font-weight:600; }
+.status-inactive { color:#888; font-weight:400; }
+.roster-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px; }
+.roster-card { background:#fff; border-radius:8px; padding:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); color:#333; }
+.shift-block { margin-bottom:8px; padding:8px; border-radius:6px; background:#f6f8fa; color:#333; }
+.shift-label { font-weight:600; margin-bottom:6px; }
+</style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo">NEXUS</div>
-        <ul class="nav-menu">
-            <li class="active"><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
-            <li><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
-            <li><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
-            <li><a href="employee-schedule.php"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
-            <li><a href="employee-fitness-plans.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
-        </ul>
-        <div class="logout-container">
-            <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">NEXUS</div>
+    <ul class="nav-menu">
+        <li class="active"><a href="employee-dashboard.php"><img src="../images/icons/dashboard-home-icon.svg" alt="Dashboard" class="nav-icon"> Dashboard</a></li>
+        <li><a href="employee-members.php"><img src="../images/icons/dashboard-members-icon.svg" alt="Members" class="nav-icon"> Members</a></li>
+        <li><a href="employee-add-member.php"><img src="../images/icons/dashboard-profile-icon.svg" alt="Add Member" class="nav-icon"> Add Member</a></li>
+        <li><a href="employee-schedule.php"><img src="../images/icons/dashboard-classes-icon.svg" alt="Schedule" class="nav-icon"> Schedule</a></li>
+        <li><a href="employee-fitness-plans.php"><img src="../images/icons/dashboard-My_Plan-icon.svg" alt="Fitness Plans" class="nav-icon"> Fitness Plans</a></li>
+    </ul>
+    <div class="logout-container">
+        <a href="../login.php" class="logout-btn"><img src="../images/icons/logout-icon.svg" alt="Logout" class="nav-icon"> Logout</a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <div class="header">
+        <h2>Employee Dashboard</h2>
+        <div class="dashboard-datetime dashboard-datetime-style" id="dashboard-datetime"></div>
+        <div class="user-profile">
+            <img src="../images/profile pictures/default-profile.svg" alt="User">
+            <span>Employee</span>
         </div>
     </div>
+<script>
+// Live date and time
+function updateDateTime() {
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateStr = now.toLocaleDateString(undefined, options);
+    const timeStr = now.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('dashboard-datetime').textContent = `${dateStr} | ${timeStr}`;
+}
+setInterval(updateDateTime, 1000);
+updateDateTime();
+</script>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="header">
-            <h2>Employee Dashboard</h2>
-            <div class="dashboard-datetime dashboard-datetime-style" id="dashboard-datetime"></div>
-            <div class="user-profile">
-                <img src="../images/profile pictures/default-profile.svg" alt="User">
-                <span>Employee</span>
-            </div>
-    <script>
-    // Live date and time for dashboard
-    function updateDateTime() {
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateStr = now.toLocaleDateString(undefined, options);
-        const timeStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        document.getElementById('dashboard-datetime').textContent = `${dateStr} | ${timeStr}`;
-    }
-    setInterval(updateDateTime, 1000);
-    updateDateTime();
-    </script>
-        </div>
+<!-- Summary Cards -->
+<div class="dashboard-summary-row">
+    <div class="dashboard-card">
+        <img src="../images/icons/dashboard-classes-icon.svg" alt="Classes Today" class="summary-icon">
+        <div class="summary-number"><?php echo htmlspecialchars($classes_today); ?></div>
+        <div class="summary-label">Classes Today</div>
+    </div>
+    <div class="dashboard-card">
+        <img src="../images/icons/dashboard-members-icon.svg" alt="Assigned Members" class="summary-icon">
+        <div class="summary-number"><?php echo htmlspecialchars($assigned_members); ?></div>
+        <div class="summary-label">Assigned Members</div>
+    </div>
+    <div class="dashboard-card">
+        <img src="../images/icons/dashboard-classes-icon.svg" alt="Available Days" class="summary-icon">
+        <div class="summary-number"><?php echo htmlspecialchars($class_days); ?></div>
+        <div class="summary-label">Class Days</div>
+    </div>
+    <div class="dashboard-card">
+        <img src="../images/icons/dashboard-progress-icon.svg" alt="Total Sessions" class="summary-icon">
+        <div class="summary-number"><?php echo htmlspecialchars($total_sessions); ?></div>
+        <div class="summary-label">Total Sessions</div>
+    </div>
+</div>
 
-        <!-- Summary Cards Row -->
-        <div class="dashboard-summary-row">
-            <div class="dashboard-card">
-                <img src="../images/icons/dashboard-classes-icon.svg" alt="Classes Today" class="summary-icon">
-                <div class="summary-number"><?php echo $classes_today; ?></div>
-                <div class="summary-label">Classes Today</div>
-            </div>
-            <div class="dashboard-card">
-                <img src="../images/icons/dashboard-members-icon.svg" alt="Assigned Members" class="summary-icon">
-                <div class="summary-number"><?php echo $assigned_members; ?></div>
-                <div class="summary-label">Assigned Members</div>
-            </div>
-            <div class="dashboard-card">
-                <img src="../images/icons/dashboard-classes-icon.svg" alt="Available Days" class="summary-icon">
-                <div class="summary-number"><?php 
-                    $avail_query = "SELECT COUNT(DISTINCT day_of_week) as days 
-                                   FROM fitness_classes 
-                                   WHERE trainer_id = $employee_id";
-                    $avail_result = $conn->query($avail_query);
-                    echo $avail_result->fetch_assoc()['days'];
-                ?></div>
-                <div class="summary-label">Class Days</div>
-            </div>
-            <div class="dashboard-card">
-                <img src="../images/icons/dashboard-progress-icon.svg" alt="Total Sessions" class="summary-icon">
-                <div class="summary-number"><?php 
-                    $sessions_query = "SELECT COUNT(*) as total FROM schedules WHERE employee_id = $employee_id";
-                    $sessions_result = $conn->query($sessions_query);
-                    echo $sessions_result->fetch_assoc()['total'];
-                ?></div>
-                <div class="summary-label">Total Sessions</div>
-            </div>
-        </div>
-
-        <!-- Large Card with Employee Table -->
-    <!-- Available Coaches Section -->
-    <div class="card card-margin-bottom">
-            <div class="employee-table-title">Available Coaches Today</div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Coach Name</th>
-                            <th>Position</th>
-                            <th>Available Times</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        // Get coaches with classes today
-                        $today_name = date('l'); // Gets day name (Monday, Tuesday, etc.)
-                        $available_coaches_query = "SELECT 
-                            DISTINCT
-                            CONCAT(e.first_name, ' ', e.last_name) as full_name,
-                            e.position,
-                            GROUP_CONCAT(
-                                CASE fc.time_slot
-                                    WHEN 'Morning' THEN '7:00 AM - 9:00 AM'
-                                    WHEN 'Afternoon' THEN '2:00 PM - 4:00 PM'
-                                    WHEN 'Evening' THEN '6:00 PM - 8:00 PM'
-                                END
-                                ORDER BY FIELD(fc.time_slot, 'Morning', 'Afternoon', 'Evening')
-                            ) as available_time,
-                            e.status
-                            FROM employees e
-                            JOIN fitness_classes fc ON e.id = fc.trainer_id
-                            WHERE e.status = 'Active'
-                            AND fc.day_of_week = ?
-                            GROUP BY e.id, e.first_name, e.last_name, e.position, e.status";
-                        
-                        $stmt = $conn->prepare($available_coaches_query);
-                        $stmt->bind_param("s", $today_name);
-                        $stmt->execute();
-                        $coaches_result = $stmt->get_result();
-
-                        if ($coaches_result->num_rows > 0) {
-                            while ($row = $coaches_result->fetch_assoc()) {
-                                echo "<tr>";
-                                echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['position']) . "</td>";
-                                // Display available times
-                                echo "<td>" . str_replace(',', ', ', $row['available_time']) . "</td>";
-                                echo "<td><span class='status-active'>Available</span></td>";
-                                echo "</tr>";
-                            }
-                        } else {
-                            echo "<tr><td colspan='4' style='text-align: center;'>No coaches available today</td></tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Duty Roster Section -->
-        <div class="card">
-            <div class="employee-table-title">Duty Roster</div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Day</th>
-                            <th>Shift Time</th>
-                            <th>Job Role</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        // Get duty roster for the current week
-                        $week_start = date('Y-m-d', strtotime('monday this week'));
-                        $week_end = date('Y-m-d', strtotime('sunday this week'));
-                        
-                        $duty_query = "SELECT 
-                            date,
-                            shift_time,
-                            job_role,
-                            CASE 
-                                WHEN date = CURRENT_DATE THEN 'Today'
-                                WHEN date < CURRENT_DATE THEN 'Completed'
-                                ELSE 'Upcoming'
-                            END as status
-                            FROM schedules
-                            WHERE employee_id = ?
-                            AND date BETWEEN ? AND ?
-                            ORDER BY date ASC, shift_time ASC";
-                        
-                        $stmt = $conn->prepare($duty_query);
-                        $stmt->bind_param("iss", $employee_id, $week_start, $week_end);
-                        $stmt->execute();
-                        $duty_result = $stmt->get_result();
-
-                        if ($duty_result->num_rows > 0) {
-                            while ($row = $duty_result->fetch_assoc()) {
-                                $status_class = $row['status'] === 'Today' ? 'status-active' : 
-                                               ($row['status'] === 'Completed' ? 'status-inactive' : '');
-                                echo "<tr>";
-                                echo "<td>" . date('l', strtotime($row['date'])) . "</td>";
-                                echo "<td>" . date('g:i A', strtotime($row['shift_time'])) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['job_role']) . "</td>";
-                                echo "<td><span class='" . $status_class . "'>" . $row['status'] . "</span></td>";
-                                echo "</tr>";
-                            }
-                        } else {
-                            echo "<tr><td colspan='4' style='text-align: center;'>No duties scheduled for this week</td></tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
+<!-- Duty Roster - Grouped by Shift -->
+<div class="card" style="margin-top: 15px;">
+    <div class="employee-table-title">Today's Duty Roster (<?php echo date('l, F d, Y'); ?>)</div>
+    <div style="padding:12px;">
+        <div class="roster-grid">
+            <?php foreach (['Morning','Afternoon','Night'] as $shift): ?>
+                <div class="roster-card">
+                    <div style="font-weight:700;"><?php echo htmlspecialchars($shift . ' — ' . shift_label_to_time($shift)); ?></div>
+                    <hr>
+                    <div class="shift-block">
+                        <?php if (!empty($roster_by_shift[$shift])): ?>
+                            <?php foreach ($roster_by_shift[$shift] as $duty): ?>
+                                <div style="padding:6px; margin-bottom:6px; border-radius:6px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+                                    <div style="font-weight:600;"><?php echo htmlspecialchars($duty['first_name'] . ' ' . $duty['last_name']); ?></div>
+                                    <div class="small"><?php echo htmlspecialchars($duty['job_role']); ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="small">No one assigned</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
+</div>
+<!-- Available Coaches View (View-Only) -->
+<div class="card" style="margin-top: 15px;">
+    <div class="employee-table-title">Available Coaches</div>
+    <div style="padding:12px;">
+        <div class="roster-grid">
+            <?php
+            // Fetch all active coaches/trainers
+            $coachQuery = "
+                SELECT 
+                    e.id, 
+                    CONCAT(e.first_name, ' ', e.last_name) AS full_name, 
+                    e.position, 
+                    CASE WHEN EXISTS (
+                        SELECT 1 FROM coach_availability ca WHERE ca.employee_id = e.id
+                    ) THEN 1 ELSE 0 END AS is_available
+                FROM employees e
+                WHERE e.status = 'Active'
+                AND (e.position LIKE '%Coach%' OR e.position LIKE '%Trainer%')
+                ORDER BY e.first_name, e.last_name
+            ";
+            $coachResult = $conn->query($coachQuery);
+
+            if ($coachResult && $coachResult->num_rows > 0):
+                while($coach = $coachResult->fetch_assoc()):
+            ?>
+                    <div class="roster-card" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:600;"><?php echo htmlspecialchars($coach['full_name']); ?></div>
+                            <div class="small"><?php echo htmlspecialchars($coach['position']); ?></div>
+                        </div>
+                        <div style="padding:4px 8px; border-radius:4px; color:#fff; font-weight:600; 
+                            background:<?php echo $coach['is_available'] ? 'green' : 'red'; ?>;">
+                            <?php echo $coach['is_available'] ? 'Available' : 'Unavailable'; ?>
+                        </div>
+                    </div>
+            <?php
+                endwhile;
+            else:
+                echo '<div class="small">No coaches available</div>';
+            endif;
+            ?>
+        </div>
+    </div>
+</div>
+
+</div>
 </body>
 </html>
