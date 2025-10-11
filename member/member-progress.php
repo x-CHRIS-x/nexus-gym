@@ -1,14 +1,10 @@
 <?php
-// Show errors while developing
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 session_start();
 include '../db.php';
 require_once '../includes/session_check.php';
 check_session(['member']);
 
-// Fallback for session key differences
+
 $member_id = isset($_SESSION['member_id']) ? (int)$_SESSION['member_id'] : (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0);
 $member_name = $_SESSION['member_name'] ?? $_SESSION['member_full_name'] ?? $_SESSION['full_name'] ?? 'Member';
 
@@ -18,7 +14,7 @@ if ($member_id <= 0 || ($_SESSION['role'] ?? '') !== 'member') {
 }
 
 // ------------------------
-// Attendance Handling
+// Attendance
 // ------------------------
 $ensureAttendanceSQL = "CREATE TABLE IF NOT EXISTS `member_attendance` (
     `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -56,7 +52,7 @@ $attendance_result = $stmt->get_result();
 $stmt->close();
 
 // ------------------------
-// Progress Handling
+// Progress
 // ------------------------
 $ensureSQL = "CREATE TABLE IF NOT EXISTS `member_progress` (
     `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,

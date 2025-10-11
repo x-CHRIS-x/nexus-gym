@@ -22,13 +22,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result && $result->num_rows === 1) {
         $row = $result->fetch_assoc();
 
-        // Check hashed password
         if (password_verify($password, $row['password'])) {
-            // store common info
+
             $_SESSION['user_id'] = $row['id'];
             $_SESSION['role']    = $role;
 
-            // store role-specific info
             if ($role === "member") {
                 $_SESSION['member_id']    = $row['id'];
                 $_SESSION['member_name']  = $row['first_name'] . ' ' . $row['last_name'];

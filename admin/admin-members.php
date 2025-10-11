@@ -1,5 +1,5 @@
 <?php
-include '../includes/session_check.php';
+require_once '../includes/session_check.php';
 include '../db.php';
 
 check_session(['admin']);
@@ -36,17 +36,6 @@ if ($edit_id) {
     <title>Nexus | Admin - Members</title>
     <link rel="stylesheet" href="admin.css">
 </head>
-
-<script>
-    // Always force a reload from the server
-    window.onload = function() {
-        if (!window.location.hash) {
-            window.location = window.location + '#loaded';
-            window.location.reload(true);
-        }
-    };
-</script>
-
 
 <body>
     <!-- Sidebar -->

@@ -2,8 +2,7 @@
 require_once '../includes/session_check.php';
 include '../db.php';
 
-// Check if user is logged in and has employee role
-check_session(['employee', 'admin']);
+check_session(['employee']);
 
 // Pagination settings
 $rows_per_page = 10;

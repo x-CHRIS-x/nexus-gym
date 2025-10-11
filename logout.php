@@ -4,7 +4,7 @@ session_start();
 // Unset all session variables
 $_SESSION = [];
 
-// Destroy the session completely
+// Destroy the session
 session_destroy();
 
 // Prevent browser from caching the previous pages

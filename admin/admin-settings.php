@@ -8,7 +8,7 @@
 
 </head>
 <?php
-include '../includes/session_check.php';
+require_once '../includes/session_check.php';
 include '../db.php';
 
 check_session(['admin']);
@@ -31,17 +31,6 @@ $result = $stmt->get_result();
 $row = $result ? $result->fetch_assoc() : ['name' => '', 'email' => ''];
 $stmt->close();
 ?>
-
-<script>
-    // Always force a reload from the server
-    window.onload = function() {
-        if (!window.location.hash) {
-            window.location = window.location + '#loaded';
-            window.location.reload(true);
-        }
-    };
-</script>
-
 
 <body>
     <!-- Sidebar -->

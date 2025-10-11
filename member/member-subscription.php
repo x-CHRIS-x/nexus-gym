@@ -47,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['plan'])) {
             background-color: #0f0f0f;
             color: #ffffff;
         }
-        /* Override Bootstrap's padding for sidebar navigation */
         #nexus-sidebar .nav-menu {
             padding: 0;
             margin: 0;

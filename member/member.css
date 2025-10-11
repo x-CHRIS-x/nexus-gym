@@ -1,9 +1,4 @@
 
-/* =============================
-   MEMBER DASHBOARD PAGE STYLES
-   (member-dashboard.html)
-   ============================= */
-
 /* ---- Sidebar ---- */
 .sidebar {
     width: 250px;
@@ -764,7 +759,7 @@ body {
 }
 
 /* Sidebar */
-#nexus-override .sidebar {
+.sidebar {
     width: 250px;
     height: 100vh;
     background: #1a1a1a;
@@ -773,30 +768,6 @@ body {
     display: flex;
     flex-direction: column;
     border-right: 1px solid #333333;
-}
-
-#nexus-override .nav-menu {
-    list-style: none;
-    flex-grow: 1;
-    padding: 0 !important;
-    margin: 0;
-}
-
-#nexus-override .nav-menu li {
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-    transition: 0.3s;
-    border-bottom: 1px solid #333333;
-}
-
-#nexus-override .nav-menu li a {
-    color: white;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    padding: 15px 25px;
-    width: 100%;
 }
 
 .logo {

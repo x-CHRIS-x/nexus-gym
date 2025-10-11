@@ -78,7 +78,7 @@ if ($end_date > $today) {
         }
     </style>
 </head>
-<body id="nexus-override">
+<body>
     <div class="sidebar">
         <div class="logo">NEXUS</div>
         <ul class="nav-menu">

@@ -1,9 +1,15 @@
 <?php 
 session_start();
-session_destroy(); // Destroy any existing session when accessing login page
-session_start(); // Start a new session
 
-// Cache control headers to prevent browser back button after logout
+$error_message = isset($_SESSION['login_error']) ? $_SESSION['login_error'] : '';
+
+if (!$error_message) {
+    session_destroy();
+    session_start();
+} else {
+    unset($_SESSION['login_error']);
+}
+
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
@@ -21,7 +27,6 @@ header("Pragma: no-cache");
     }
 
     .error-message {
-      display: none;
       background-color: #ffe5e5;
       color: #ff0000;
       border-left: 5px solid #ff0000;
@@ -94,8 +99,11 @@ header("Pragma: no-cache");
             </div>
           </div>
 
-          <!-- Modern error message -->
-          <div class="error-message" id="error-msg"><?php if(isset($_SESSION['login_error'])) echo $_SESSION['login_error']; ?></div>
+          <?php if($error_message): ?>
+          <div class="error-message" id="error-msg">
+              <?php echo htmlspecialchars($error_message); ?>
+          </div>
+          <?php endif; ?>
 
           <!-- Member Login -->
           <form action="login-process.php" method="POST" id="member-form">
@@ -143,14 +151,5 @@ header("Pragma: no-cache");
     </div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const errorBox = document.getElementById('error-msg');
-      if(errorBox.textContent.trim() !== "") {
-        errorBox.style.display = 'block';
-      }
-    });
-  </script>
-  <?php unset($_SESSION['login_error']); ?>
 </body>
 </html>

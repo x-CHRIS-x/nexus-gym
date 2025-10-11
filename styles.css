@@ -1,15 +1,13 @@
-/* === NEXUS GYM – Login Page Styles (Black & Red Theme) === */
 :root{
   --bg:#0f0f0f;            /* dark black background */
   --white:#ffffff;
-  --text:#ffffff;          /* white text */
-  --red-600:#dc2626;       /* main red */
+  --text:#ffffff;
+  --red-600:#dc2626;       /* main red  theme*/
   --red-700:#b91c1c;
   --shadow:0 10px 15px -3px rgba(220,38,38,.2),0 4px 6px -4px rgba(220,38,38,.1);
   --radius:12px;
 }
 
-/* Reset + base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -40,12 +38,11 @@ svg{display:block}
 .mt-8{margin-top:2rem}
 .rounded-full{border-radius:999px}
 
-/* Grid helpers */
 .grid{display:grid}
 .grid-cols-3{grid-template-columns:repeat(3,1fr)}
 .gap-8{gap:2rem}
 
-/* Responsive utilities */
+/* Responsive  */
 @media(min-width:768px){
   .md\:hidden{display:none}
 }
@@ -91,7 +88,7 @@ svg{display:block}
   border:1px solid #333333;
 }
 
-/* Login header and branding */
+/* Login header */
 .login-header{
   display:flex;
   flex-direction:column;
@@ -178,7 +175,6 @@ svg{display:block}
   color:#ffffff;
 }
 
-/* Tab group */
 .tabgroup{
   display:flex;
   border:1px solid #333333;
@@ -299,18 +295,6 @@ svg{display:block}
   background:var(--red-700);
 }
 
-/* Forgot password */
-.forgot-password{
-  margin-top:1rem;
-  text-align:center;
-}
-
-.forgot-password a{
-  font-size:.875rem;
-  color:var(--red-600);
-}
-
-/* Icon helpers */
 .svg-24{
   width:24px;
   height:24px;
