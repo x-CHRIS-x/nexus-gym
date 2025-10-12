@@ -16,6 +16,23 @@ if (!isset($_GET['id'])) {
 
 $memberId = $_GET['id'];
 
+// Check if membership is eligible for renewal (expired or within 3 days of expiration)
+$checkEligibilityQuery = "SELECT 
+    DATEDIFF(membership_end_date, CURDATE()) as days_until_expiry,
+    status
+    FROM members 
+    WHERE id = ?";
+$stmt = $conn->prepare($checkEligibilityQuery);
+$stmt->bind_param("i", $memberId);
+$stmt->execute();
+$eligibility = $stmt->get_result()->fetch_assoc();
+
+if ($eligibility['status'] === 'Active' && $eligibility['days_until_expiry'] > 3) {
+    $_SESSION['error_message'] = "Membership can only be renewed when expired or within 3 days of expiration.";
+    header("Location: employee-members.php");
+    exit();
+}
+
 // Fetch member details
 $query = "SELECT * FROM members WHERE id = ?";
 $stmt = $conn->prepare($query);

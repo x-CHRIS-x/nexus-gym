@@ -124,7 +124,8 @@ if ($edit_id) {
                                         $stmt->close();
                                         $row["status"] = $status;
                                     }
-                                    $renewBtnStyle = $daysUntilExpiry > 0 ? 
+                                    // Show renew button if expired or within 3 days of expiry
+                                    $renewBtnStyle = ($daysUntilExpiry > 3) ? 
                                         "background:#666;cursor:not-allowed;color:#999;" : 
                                         "background:#22c55e;color:#fff;";
                                     
@@ -142,8 +143,8 @@ if ($edit_id) {
                                         <a href='delete_member.php?id=".$row['id']."' class='btn-action btn-delete' title='Delete' onclick='return confirm(\"Are you sure you want to delete this member?\")'>
                                             <img src='../images/icons/delete-icon.svg' alt='Delete'>
                                         </a>
-                                        " . ($daysUntilExpiry > 0 ? 
-                                            "<span class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}' title='Cannot renew - membership still active'>Renew</span>" :
+                                        " . ($daysUntilExpiry > 3 ? 
+                                            "<span class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}' title='Can only renew within 3 days of expiry'>Renew</span>" :
                                             "<a href='renew-membership.php?id=".$row['id']."' class='btn-action btn-renew' style='text-decoration:none;padding:6px 16px;border-radius:12px;font-weight:500;margin-left:32px;{$renewBtnStyle}'>Renew</a>"
                                         ) . "
                                     </td>
