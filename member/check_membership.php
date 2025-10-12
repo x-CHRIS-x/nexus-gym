@@ -43,7 +43,6 @@ function getSidebarMenu($conn, $member_id) {
         return [
             ['href' => 'member-dashboard.php', 'icon' => 'dashboard-home-icon.svg', 'text' => 'Dashboard'],
             ['href' => 'member-classes.php', 'icon' => 'dashboard-classes-icon.svg', 'text' => 'Classes'],
-            ['href' => 'member-my-plan.php', 'icon' => 'dashboard-My_Plan-icon.svg', 'text' => 'My Plan'],
             ['href' => 'member-progress.php', 'icon' => 'dashboard-progress-icon.svg', 'text' => 'Progress'],
             ['href' => 'member-subscription.php', 'icon' => 'dashboard-payment-icon.svg', 'text' => 'Subscription'],
             ['href' => 'member-profile.php', 'icon' => 'dashboard-profile-icon.svg', 'text' => 'Profile']
